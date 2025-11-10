@@ -5,6 +5,6 @@
 
 void must_init(_Bool test, const char* description);
 
-void ShuffleArray(int* array, int size);
+void shuffle_array(int* array, int size);
 
 #endif

@@ -12,10 +12,10 @@ typedef struct {
 
 } Renderer_t;
 
-void FillRenderer(Renderer_t* renderer);
-/*
-void Render(Renderer* renderer);
+void init_renderer(Renderer_t* renderer);
 
-void ClearRenderer(Renderer* renderer);
-*/
+void render(Renderer_t* renderer);
+
+void clear_renderer(Renderer_t* renderer);
+
 #endif

@@ -3,7 +3,6 @@
     includes / libs
 ==============================
 */
-#include "./libs/constants.h"
 #include "constants.h"
 #include "renderer.h"
 #include "utils.h"
@@ -40,7 +39,7 @@ int main(int argc, char* argv[])
 
     // ===================== event queue registers =====================
     Renderer_t renderer;
-    FillRenderer(&renderer);
+    init_renderer(&renderer);
 
     al_register_event_source(event_queue, al_get_keyboard_event_source());
     al_register_event_source(event_queue, al_get_timer_event_source(timer));
@@ -82,7 +81,7 @@ int main(int argc, char* argv[])
     al_destroy_display(display);
     al_destroy_event_queue(event_queue);
     al_destroy_timer(timer);
-    // ClearRenderer(&renderer);
+    clear_renderer(&renderer);
 
     return SUCCESS;
 }

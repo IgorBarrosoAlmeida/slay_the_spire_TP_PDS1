@@ -13,7 +13,7 @@ void must_init(_Bool test, const char* description)
     exit(INITIALIZE_ERROR);
 }
 
-void ShuffleArray(int* array, int size)
+void shuffle_array(int* array, int size)
 {
     if (size > 1) {
         int i;

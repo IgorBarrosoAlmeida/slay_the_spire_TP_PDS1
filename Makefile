@@ -1,32 +1,5 @@
-#ALLEGRO_VERSION=5.0.10
-#MINGW_VERSION=4.7.0
-#FOLDER=C:
-
-#FOLDER_NAME=\allegro-$(ALLEGRO_VERSION)-mingw-$(MINGW_VERSION)
-#PATH_ALLEGRO=$(FOLDER)$(FOLDER_NAME)
-#LIB_ALLEGRO=\lib\liballegro-$(ALLEGRO_VERSION)-monolith-mt.a
-#INCLUDE_ALLEGRO=\include
-
-# Pasta local onde estão seus headers e .c
-#INCLUDE_LOCAL=.\libs
-#SRC=slay_the_spire.c \
-#    libs/renderer.c \
-#    libs/utils.c
-
-#OBJ=$(SRC:.c=.o)
-
-#game: $(OBJ)
-#	gcc -o slay_the_spire.exe $(OBJ) $(PATH_ALLEGRO)$(LIB_ALLEGRO)
-
-#%.o: %.c
-#	gcc -I $(PATH_ALLEGRO)$(INCLUDE_ALLEGRO) -I $(INCLUDE_LOCAL) -c $< -o $@
-
-#clean:
-#	del $(OBJ)
-#	del slay_the_spire.exe
-
 # ====================================
-# Configurações Allegro
+# CONFIGURAÇÕES DO ALLEGRO
 # ====================================
 ALLEGRO_VERSION=5.0.10
 MINGW_VERSION=4.7.0
@@ -38,45 +11,48 @@ LIB_ALLEGRO=\lib\liballegro-$(ALLEGRO_VERSION)-monolith-mt.a
 INCLUDE_ALLEGRO=\include
 
 # ====================================
-# Pasta local
+# PASTAS DO PROJETO
 # ====================================
-INCLUDE_LOCAL=.\libs
-SRC_LOCAL=.\libs
+SRC_DIR=src
+INC_DIR=include
+BIN_DIR=bin
+LIB_DIR=lib
 
 # ====================================
-# Detecta todos os arquivos .c
+# ARQUIVOS-FONTE E OBJETOS
 # ====================================
-SRC=$(wildcard *.c) $(wildcard $(SRC_LOCAL)/*.c)
-OBJ=$(SRC:.c=.o)
+SRC=$(wildcard $(SRC_DIR)/*.c)
+OBJ=$(SRC:$(SRC_DIR)/%.c=$(BIN_DIR)/%.o)
 
 # ====================================
-# Executável
-# ====================================
-EXE=slay_the_spire.exe
-
-# ====================================
-# Compilador e flags
+# COMPILADOR E FLAGS
 # ====================================
 CC=gcc
-CFLAGS=-I $(PATH_ALLEGRO)$(INCLUDE_ALLEGRO) -I $(INCLUDE_LOCAL)
+CFLAGS=-I $(PATH_ALLEGRO)$(INCLUDE_ALLEGRO) -I $(INC_DIR)
+LDFLAGS=$(PATH_ALLEGRO)$(LIB_ALLEGRO)
+TARGET=$(BIN_DIR)/meu_jogo.exe
 
 # ====================================
-# Alvo principal
+# REGRAS PRINCIPAIS
 # ====================================
-all: $(EXE)
+all: $(TARGET)
 
-$(EXE): $(OBJ)
-	$(CC) -o $(EXE) $(OBJ) $(PATH_ALLEGRO)$(LIB_ALLEGRO)
+$(TARGET): $(OBJ)
+	$(CC) -o $@ $(OBJ) $(LDFLAGS)
 
-# ====================================
-# Regra para compilar qualquer .c em .o
-# ====================================
-%.o: %.c
+# Compila cada .c da pasta src/ para .o na pasta bin/
+$(BIN_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # ====================================
-# Limpeza
+# LIMPEZA (compatível com Windows cmd)
 # ====================================
 clean:
-	cmd /C del /Q *.o $(SRC_LOCAL)\*.o 2>nul
-	cmd /C del /Q $(EXE) 2>nul
+	cmd /C del /Q $(BIN_DIR)\*.o 2>nul
+	cmd /C del /Q $(TARGET) 2>nul
+
+# ====================================
+# EXECUTAR O JOGO (opcional)
+# ====================================
+run: all
+	$(TARGET)
