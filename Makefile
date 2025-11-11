@@ -30,7 +30,7 @@ OBJ=$(SRC:$(SRC_DIR)/%.c=$(BIN_DIR)/%.o)
 CC=gcc
 CFLAGS=-I $(PATH_ALLEGRO)$(INCLUDE_ALLEGRO) -I $(INC_DIR)
 LDFLAGS=$(PATH_ALLEGRO)$(LIB_ALLEGRO)
-TARGET=$(BIN_DIR)/meu_jogo.exe
+TARGET=$(BIN_DIR)/slay_the_spire.exe
 
 # ====================================
 # REGRAS PRINCIPAIS

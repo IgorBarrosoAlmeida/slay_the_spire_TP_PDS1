@@ -10,8 +10,8 @@
 #define DISPLAY_BUFFER_HEIGHT 1080.0
 
 #define DISPLAY_SCALE 0.7
-#define SCREEN_WIDTH DISPLAY_SCALE* DISPLAY_BUFFER_WIDTH
-#define SCREEN_HEIGTH DISPLAY_SCALE* DISPLAY_BUFFER_HEIGHT
+#define DISPLAY_WIDTH DISPLAY_SCALE* DISPLAY_BUFFER_WIDTH
+#define DISPLAY_HEIGHT DISPLAY_SCALE* DISPLAY_BUFFER_HEIGHT
 #define FPS 100
 
 /*
@@ -19,16 +19,19 @@
     Visual consts
 ===============================
 */
-/*
-#define DRAW_DECK_X 15
-#define DRAW_DECK_Y 910
+#define DECK_POSITION_X 50
+#define DECK_POSITION_Y 800
 
-#define DECK_WIDTH 80
-#define DECK_HEIGHT 80
+#define DECK_WIDTH 140
+#define DECK_HEIGHT 200
 
 #define PLAYER_BEGIN_X 300
 #define PLAYER_BEGIN_Y 375
 #define PLAYER_RADIUS 100
+
+#define ENEMIES_BEGIN_X 1300
+#define ENEMIES_BEGIN_Y 375
+#define ENEMIES_RADIUS 100
 
 #define HEALTH_BAR_HEIGHT 20
 #define HEALTH_BAR_BACKGROUND_EXTRA 1
@@ -42,7 +45,16 @@
 #define CARD_WIDTH 280
 #define CARD_HEIGHT 420
 
+/*
+===============================
+    creatures informations
+===============================
 */
+#define PLAYER_MAX_HEALTH 100
+#define PLAYER_MAX_ENERGY 3
+
+#define DECK_LENGTH 20
+#define HAND_LENGTH 5
 
 /*
 ===============================

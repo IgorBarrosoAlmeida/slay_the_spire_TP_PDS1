@@ -4,11 +4,15 @@
 ==============================
 */
 #include "constants.h"
+#include "deck.h"
+#include "player.h"
 #include "renderer.h"
 #include "utils.h"
 
 #include <allegro5/allegro.h>
 #include <allegro5/allegro5.h>
+// #include <allegro5/allegro_font.h>
+// #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 #include <stdio.h>
@@ -24,12 +28,17 @@ int main(int argc, char* argv[])
     ALLEGRO_DISPLAY* display = NULL;
     ALLEGRO_EVENT_QUEUE* event_queue = NULL;
     ALLEGRO_TIMER* timer = NULL;
+    _Bool playing = true, redraw = true;
+    Player_t player;
 
     // ===================== initialize routines =====================
     must_init(al_init(), "allegro");
-    must_init(al_init_image_addon(), "allegro");
-    must_init(al_init_primitives_addon(), "primitives");
+    must_init(al_init_image_addon(), "allegro addon");
+    must_init(al_init_primitives_addon(), "primitives addon");
     must_init(al_install_keyboard(), "keyboard");
+    init_player(&player);
+    // al_init_font_addon();
+    // must_init(al_init_ttf_addon(), "font ttf addon");
 
     timer = al_create_timer(1.0 / FPS);
     must_init(timer, "timer");
@@ -50,31 +59,32 @@ int main(int argc, char* argv[])
     // inicia o temporizador
     al_start_timer(timer);
 
-    // initial screen
-    al_clear_to_color(al_map_rgb(0, 0, 0));
-    al_flip_display();
-
-    int playing = 1;
     while (playing) {
         al_wait_for_event(event_queue, &event);
 
         switch (event.type) {
         case ALLEGRO_EVENT_TIMER:
-            al_flip_display();
+            redraw = true;
 
-            if (al_get_timer_count(timer) % (int)FPS == 0)
-                printf("\n%d segundos se passaram...", (int)(al_get_timer_count(timer) / FPS));
             break;
         case ALLEGRO_EVENT_DISPLAY_CLOSE:
-            playing = 0;
+            playing = false;
             break;
         case ALLEGRO_EVENT_KEY_DOWN:
-            // imprime qual tecla foi
-            printf("\ncodigo tecla: %d", event.keyboard.keycode);
-            // Muda a cor da tela
-            al_clear_to_color(al_map_rgb(rand() % 256, rand() % 256, rand() % 256));
-        default:
+            switch (event.keyboard.keycode) {
+            case ALLEGRO_KEY_Q:
+                playing = false;
+
+                printf("Apertou Q");
+                break;
+            }
+
             break;
+        }
+
+        if (playing && redraw) {
+            render_screen(&renderer, &player);
+            redraw = false;
         }
     }
 
