@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
             /* TO-DO: Resetar o player e a batalha*/
         }
 
-        if (game->actual_battle.isPlayerTurn && !hand_locked) {
+        if (game->actual_battle.isPlayerTurn && !hand_locked && game->player->hand->actual_length > 0) {
             if (event.type == ALLEGRO_EVENT_KEY_DOWN) {
                 switch (event.keyboard.keycode) {
                 case ALLEGRO_KEY_LEFT: {
@@ -108,12 +108,24 @@ int main(int argc, char* argv[])
                     break;
                 }
                 case ALLEGRO_KEY_ENTER: {
-                    hand_locked = true;
                     move = true;
                     break;
                 }
                 }
             }
+        }
+
+        if (game->player->energy <= 0) {
+            hand_locked = true;
+        }
+
+        if (event.type == ALLEGRO_EVENT_KEY_DOWN && event.keyboard.keycode == ALLEGRO_KEY_ESCAPE
+            && game->actual_battle.isPlayerTurn) {
+            inicio_turno_inimigo = al_get_time();
+            discard_all_hand(game->player);
+
+            game->actual_battle.isPlayerTurn = false;
+            hand_locked = true;
         }
 
         if (event.type == ALLEGRO_EVENT_TIMER) {
@@ -123,12 +135,8 @@ int main(int argc, char* argv[])
         if (redraw && al_is_event_queue_empty(event_queue)) {
 
             if (move && game->actual_battle.isPlayerTurn) {
-                printf("Dados player: vida - %d; energia - %d\n", game->player->health, game->player->energy);
-                printf("Dados inimigo: vida - %d; next_action: %d\n", game->actual_battle.enemys[0].health, game->actual_battle.enemys[0].next_action);
+                int energy = game->player->energy;
                 battle(game);
-
-                game->actual_battle.isPlayerTurn = false;
-                inicio_turno_inimigo = al_get_time();
 
                 move = false;
             }
@@ -141,9 +149,10 @@ int main(int argc, char* argv[])
 
                     game->actual_battle.isPlayerTurn = true;
                     hand_locked = false;
+
+                    player_init_new_turn(game->player);
                 }
             }
-
             render_screen(game);
 
             // Para escrever "inimigo pensando..."

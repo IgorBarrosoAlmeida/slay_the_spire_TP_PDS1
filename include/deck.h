@@ -14,6 +14,7 @@ typedef struct card {
     int cost;
     int effect;
     _Bool active;
+    int id;
     // char* description;
 } Card_t;
 

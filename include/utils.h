@@ -6,6 +6,6 @@
 
 void must_init(_Bool test, const char* description, Game_t* game);
 
-void shuffle_array(int* array, int size);
+void shuffle_array(Card_t* array, int size);
 
 #endif

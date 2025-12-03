@@ -15,7 +15,7 @@ void must_init(_Bool test, const char* description, Game_t* game)
     exit(INITIALIZE_ERROR);
 }
 
-void shuffle_array(int* array, int size)
+void shuffle_array(Card_t* array, int size)
 {
     if (size > 1) {
         int i;
@@ -24,7 +24,7 @@ void shuffle_array(int* array, int size)
             if (j == i) {
                 continue;
             }
-            int int_j = array[j];
+            Card_t int_j = array[j];
 
             array[j] = array[i];
 

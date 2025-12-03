@@ -39,7 +39,7 @@
 #define HEALTH_BAR_RX 0
 #define HEALTH_BAR_RY 0
 
-#define HAND_BEGIN_X 325
+#define HAND_BEGIN_X 240
 #define HAND_BEGIN_Y 780
 
 #define CARD_WIDTH 280

@@ -31,13 +31,20 @@ void free_battle(Battle_t battle)
     free(battle.enemys);
 }
 
-void player_move(Player_t* player, Enemy_t* enemy)
+Type_t player_move(Player_t* player, Enemy_t* enemy)
 {
     int card_index = index_card_active(player->hand);
 
+    if (player->energy < player->hand->cards[card_index].cost) {
+        return player->hand->cards[card_index].type;
+    }
+
     switch (player->hand->cards[card_index].type) {
     case SPECIAL:
-        /* TO-DO */
+        discard_all_hand(player);
+        buy_cards_from_deck(player->hand, player->deck, player->discard_stack);
+
+        return SPECIAL;
         break;
     case ATACK: {
         int damage = player->hand->cards[card_index].effect;
@@ -70,6 +77,7 @@ void player_move(Player_t* player, Enemy_t* enemy)
     }
 
     player->energy -= player->hand->cards[card_index].cost;
+    return player->hand->cards[card_index].type;
 }
 
 void enemy_move(Player_t* player, Enemy_t enemy)
@@ -129,12 +137,18 @@ void battle(Game_t* game)
     if (game->actual_battle.isPlayerTurn) {
         for (int i = 0; i < game->actual_battle.n_enemys; i++) {
             if (game->actual_battle.enemys[i].selected) {
-                player_move(game->player, &(game->actual_battle.enemys[i]));
+                int energy = game->player->energy;
+                Type_t type = player_move(game->player, &(game->actual_battle.enemys[i]));
+
+                if (type != SPECIAL) {
+                    discard_active_card(game, energy);
+                }
+                break;
             }
         }
     } else {
         for (int i = 0; i < game->actual_battle.n_enemys; i++) {
-            enemy_move(game->player, game->actual_battle.enemys[i]);
+            (game->player, game->actual_battle.enemys[i]);
         }
         /* TO-DO: Fazer esperar um pouco pra ação dos inimigos */
     }

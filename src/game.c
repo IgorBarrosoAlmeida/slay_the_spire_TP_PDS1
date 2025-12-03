@@ -10,8 +10,8 @@ Game_t* init_game()
     game->renderer = init_renderer();
     must_init(game->renderer, "Renderer", game);
     game->player = init_player();
-    game->level = 0;
-    game->change_level = true;
+    game->level = 1;
+    game->change_level = false;
     game->game_over = false;
     game->actual_battle = init_battle(1);
 
