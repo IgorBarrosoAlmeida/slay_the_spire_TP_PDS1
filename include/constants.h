@@ -12,7 +12,7 @@
 #define DISPLAY_SCALE 0.7
 #define DISPLAY_WIDTH DISPLAY_SCALE* DISPLAY_BUFFER_WIDTH
 #define DISPLAY_HEIGHT DISPLAY_SCALE* DISPLAY_BUFFER_HEIGHT
-#define FPS 100
+#define FPS 60.0
 
 /*
 ===============================
@@ -56,6 +56,12 @@
 #define DECK_LENGTH 20
 #define HAND_LENGTH 5
 
+#define WEAK_ENEMY_MIN_HEALTH 10
+#define WEAK_ENEMY_MAX_HEALTH 30
+
+#define STRONG_ENEMY_MIN_HEALTH 40
+#define STRONG_ENEMY_MAX_HEALTH 100
+
 /*
 ===============================
     Returns consts
@@ -64,8 +70,4 @@
 #define SUCCESS 0
 #define INITIALIZE_ERROR -1
 
-typedef enum {
-    MOVE_LEFT = 0,
-    MOVE_RIGHT = 1,
-} CursorMovementDirection_t;
 #endif

@@ -5,6 +5,10 @@
         "constants.h": "c",
         "stdlib.h": "c",
         "player.h": "c",
-        "deck.h": "c"
+        "deck.h": "c",
+        "battle.h": "c",
+        "renderer.h": "c",
+        "utils.h": "c",
+        "game.h": "c"
     }
 }

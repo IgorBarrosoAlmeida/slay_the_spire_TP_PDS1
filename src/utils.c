@@ -4,11 +4,13 @@
 #include <allegro5/allegro5.h>
 #include <stdio.h>
 
-void must_init(_Bool test, const char* description)
+void must_init(_Bool test, const char* description, Game_t* game)
 {
-    if (test)
+    if (test) {
         return;
+    }
 
+    free_game(game);
     fprintf(stderr, "couldn't initialize %s\n", description);
     exit(INITIALIZE_ERROR);
 }

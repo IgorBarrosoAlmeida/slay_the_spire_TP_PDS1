@@ -8,10 +8,12 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 // #include <allegro5/allegro_ttf.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "constants.h"
 #include "deck.h"
+#include "game.h"
 #include "player.h"
 #include "renderer.h"
 #include "utils.h"
@@ -23,21 +25,34 @@
 */
 
 /* initialize renderer struct */
-void init_renderer(Renderer_t* renderer)
+Renderer_t* init_renderer()
 {
+    Renderer_t* renderer = malloc(sizeof(Renderer_t));
+
+    if (!renderer) {
+        return NULL;
+    }
+
     al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
     al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
     al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
 
     renderer->display = al_create_display(DISPLAY_WIDTH, DISPLAY_HEIGHT);
-    must_init(renderer->display, "display");
+    if (!renderer->display) {
+        return NULL;
+    }
 
     renderer->display_buffer = al_create_bitmap(DISPLAY_BUFFER_WIDTH, DISPLAY_BUFFER_HEIGHT);
-    must_init(renderer->display_buffer, "display buffer");
+    if (!renderer->display_buffer) {
+        return NULL;
+    }
 
-    // renderer->font = al_load_font("arial.ttf", 32, 1);
     renderer->font = al_create_builtin_font();
-    must_init(renderer->font != NULL, "font");
+    if (!renderer->font) {
+        return NULL;
+    }
+
+    return renderer;
 }
 
 /* render game background */
@@ -80,6 +95,33 @@ void render_deck(Renderer_t* renderer, int x_left, int y_top)
     al_destroy_bitmap(deck_bitmap);
 }
 
+void draw_health_bar(float x, float y, float width, float height, int current_hp, int max_hp)
+{
+    if (max_hp <= 0)
+        max_hp = 1;
+    if (current_hp < 0)
+        current_hp = 0;
+    if (current_hp > max_hp)
+        current_hp = max_hp;
+
+    float percentage = (float)current_hp / (float)max_hp;
+
+    ALLEGRO_COLOR bar_color;
+    if (percentage > 0.5) {
+        bar_color = al_map_rgb(50, 205, 50);
+    } else if (percentage > 0.25) {
+        bar_color = al_map_rgb(255, 215, 0);
+    } else {
+        bar_color = al_map_rgb(220, 20, 60);
+    }
+
+    al_draw_filled_rectangle(x, y, x + width, y + height, al_map_rgb(50, 50, 50));
+
+    al_draw_filled_rectangle(x, y, x + (width * percentage), y + height, bar_color);
+
+    al_draw_rectangle(x, y, x + width, y + height, al_map_rgb(255, 255, 255), 2.0);
+}
+
 void render_health_bar(float x_begin, float x_end, float y_down_left, ALLEGRO_FONT* font)
 {
     float mid_y = y_down_left - (HEALTH_BAR_HEIGHT * 0.78);
@@ -97,17 +139,17 @@ void render_health_bar(float x_begin, float x_end, float y_down_left, ALLEGRO_FO
         mid_y / y_scale, x_scale, y_scale, ALLEGRO_ALIGN_CENTRE, text);
 }
 
-void render_creature(const Renderer_t* renderer, int begin_x, int mid_y, int width)
+void render_creature(const Renderer_t* renderer, int begin_x, int mid_y, int width, int max_health, int health)
 {
     al_draw_filled_circle(begin_x + width / 2.0, mid_y, width,
         al_map_rgb(255, 255, 255));
     float x_end = begin_x + width;
 
     float health_bar_y = mid_y + width + 20;
-    render_health_bar(begin_x, x_end, health_bar_y, renderer->font);
+    draw_health_bar(begin_x, health_bar_y, 300, 50, health, max_health);
 }
 
-void render_card(const Renderer_t* renderer, int x_left, int y_top)
+void render_card(const Renderer_t* renderer, int x_left, int y_top, _Bool active)
 {
     ALLEGRO_BITMAP* card_bitmap = al_create_bitmap(CARD_WIDTH, CARD_HEIGHT);
     al_set_target_bitmap(card_bitmap);
@@ -129,6 +171,9 @@ void render_card(const Renderer_t* renderer, int x_left, int y_top)
         (CARD_HEIGHT * 0.3) / yscale, xscale, yscale,
         ALLEGRO_ALIGN_LEFT, text);
 
+    if (active) {
+        y_top -= 100;
+    }
     al_set_target_bitmap(renderer->display_buffer);
     al_draw_scaled_bitmap(card_bitmap, 0, 0, CARD_WIDTH, CARD_HEIGHT, x_left,
         y_top, CARD_WIDTH, CARD_HEIGHT, 0);
@@ -136,42 +181,41 @@ void render_card(const Renderer_t* renderer, int x_left, int y_top)
     al_destroy_bitmap(card_bitmap);
 }
 
-void render_player_hand(Renderer_t* renderer)
+void render_player_hand(Renderer_t* renderer, PlayerHand_t* hand)
 {
-    render_card(renderer, HAND_BEGIN_X, HAND_BEGIN_Y);
-    render_card(renderer, HAND_BEGIN_X + CARD_WIDTH + 10, HAND_BEGIN_Y);
-    render_card(renderer, HAND_BEGIN_X + (2 * (CARD_WIDTH + 10)), HAND_BEGIN_Y);
-    render_card(renderer, HAND_BEGIN_X + (3 * (CARD_WIDTH + 10)), HAND_BEGIN_Y);
+    for (int i = 0; i < hand->actual_length; i++) {
+        render_card(renderer, HAND_BEGIN_X + (i * (CARD_WIDTH + 10)), HAND_BEGIN_Y, hand->cards[i].active);
+    }
 }
 
-void render_enemies(Renderer_t* renderer)
+void render_enemies(Renderer_t* renderer, int n_enemys, Enemy_t* enemys)
 {
-    render_creature(renderer, ENEMIES_BEGIN_X, ENEMIES_BEGIN_Y + ENEMIES_RADIUS, ENEMIES_RADIUS);
-    render_creature(renderer, ENEMIES_BEGIN_X + (2 * ENEMIES_RADIUS) + 30, ENEMIES_BEGIN_Y + ENEMIES_RADIUS, ENEMIES_RADIUS);
+    for (int i = 0; i < n_enemys; i++) {
+        render_creature(renderer, ENEMIES_BEGIN_X + (i * (ENEMIES_RADIUS + 30)), ENEMIES_BEGIN_Y + (i * ENEMIES_RADIUS), ENEMIES_RADIUS, enemys[i].max_health, enemys[i].health);
+    }
 }
 
 void render_player(Renderer_t* renderer, Player_t* player)
 {
-
-    render_creature(renderer, PLAYER_BEGIN_X, PLAYER_BEGIN_Y + PLAYER_RADIUS, PLAYER_RADIUS);
+    render_creature(renderer, PLAYER_BEGIN_X, PLAYER_BEGIN_Y + PLAYER_RADIUS, PLAYER_RADIUS, PLAYER_MAX_HEALTH, player->health);
 }
 
 void render_energy(Renderer_t* renderer)
 {
 }
 
-void render_screen(Renderer_t* renderer, Player_t* player)
+void render_screen(Game_t* game)
 {
-    al_set_target_bitmap(renderer->display_buffer);
-    render_background(renderer);
-    render_deck(renderer, DECK_POSITION_X, DECK_POSITION_Y);
-    render_player(renderer, player);
-    render_energy(renderer);
-    render_enemies(renderer);
-    render_player_hand(renderer);
-    al_set_target_backbuffer(renderer->display);
+    al_set_target_bitmap(game->renderer->display_buffer);
+    render_background(game->renderer);
+    render_deck(game->renderer, DECK_POSITION_X, DECK_POSITION_Y);
+    render_player(game->renderer, game->player);
+    render_energy(game->renderer);
+    render_enemies(game->renderer, game->actual_battle.n_enemys, game->actual_battle.enemys);
+    render_player_hand(game->renderer, game->player->hand);
+    al_set_target_backbuffer(game->renderer->display);
 
-    al_draw_scaled_bitmap(renderer->display_buffer, 0, 0, DISPLAY_BUFFER_WIDTH,
+    al_draw_scaled_bitmap(game->renderer->display_buffer, 0, 0, DISPLAY_BUFFER_WIDTH,
         DISPLAY_BUFFER_HEIGHT, 0, 0, DISPLAY_WIDTH,
         DISPLAY_HEIGHT, 0);
 
@@ -180,7 +224,11 @@ void render_screen(Renderer_t* renderer, Player_t* player)
 
 void clear_renderer(Renderer_t* renderer)
 {
+    if (!renderer)
+        return;
+
     al_destroy_display(renderer->display);
     al_destroy_bitmap(renderer->display_buffer);
     al_destroy_font(renderer->font);
+    free(renderer);
 }

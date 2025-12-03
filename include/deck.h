@@ -1,6 +1,8 @@
 #ifndef _DECK_H_
 #define _DECK_H_
+#include <stdbool.h>
 
+/* TO-DO Deixar alocação dinamica menos propensa a erros */
 typedef enum {
     SPECIAL = 0,
     DEFENSE = 1,
@@ -11,6 +13,7 @@ typedef struct card {
     Type_t type;
     int cost;
     int effect;
+    _Bool active;
     // char* description;
 } Card_t;
 
@@ -20,6 +23,7 @@ typedef struct deck {
     int actual_length;
 } Deck_t;
 
-Deck_t init_deck();
+Deck_t* init_deck();
+void free_deck(Deck_t* deck);
 
 #endif
