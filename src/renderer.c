@@ -82,6 +82,10 @@ Renderer_t* init_renderer()
     if (!renderer->img_game_over) {
         return NULL;
     }
+    renderer->img_victory = al_load_bitmap("./assets/images/victory.png");
+    if (!renderer->img_victory) {
+        return NULL;
+    }
 
     // icones
     renderer->img_shield = al_load_bitmap("./assets/images/shield_icon.png");
@@ -248,13 +252,16 @@ void render_creature(const Renderer_t* renderer, int begin_x, int begin_y, int w
     float scale = 2.0;
     ALLEGRO_COLOR text_color = al_map_rgb(255, 255, 255);
 
-    float txt_x = (begin_x + 10) / scale;
-    float txt_y = (health_bar_y + 100) / scale;
-
     char buffer[64];
 
     sprintf(buffer, "Escudo: %d", shield);
-    draw_scaled_text(renderer->font, text_color, txt_x, txt_y,
+    draw_scaled_text(renderer->font, text_color, (begin_x + 10) / scale, (health_bar_y + 100) / scale,
+        scale, scale, ALLEGRO_ALIGN_LEFT, buffer);
+
+    // Escreve atual/max
+    text_color = al_map_rgb(255, 255, 255);
+    sprintf(buffer, "%d/%d", health, max_health);
+    draw_scaled_text(renderer->font, text_color, (begin_x + 100) / scale, (health_bar_y + 20) / scale,
         scale, scale, ALLEGRO_ALIGN_LEFT, buffer);
 
     // select box
@@ -337,6 +344,17 @@ void render_enemies(Renderer_t* renderer, int n_enemys, Enemy_t* enemys)
                 100,
                 0);
         }
+
+        // Escreve o efeito da proxima ação
+        char buffer[10];
+        ALLEGRO_COLOR text_color = al_map_rgb(255, 255, 255);
+        float scale = 2.0;
+        sprintf(buffer, "%d", enemys[i].actions[enemys[i].next_action].effect);
+
+        draw_scaled_text(renderer->font, text_color,
+            (ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)) + 230) / scale, (ENEMIES_BEGIN_Y - 30) / scale,
+            scale, scale, ALLEGRO_ALIGN_LEFT, buffer);
+
         if (enemys[i].type == WEAK) {
             render_creature(renderer, ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)), ENEMIES_BEGIN_Y,
                 ENEMIES_WIDTH, enemys[i].max_health, enemys[i].health, enemys[i].shield, enemys[i].died ? -1 : 1, enemys[i].selected);

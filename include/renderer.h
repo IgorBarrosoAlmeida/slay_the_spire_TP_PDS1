@@ -20,6 +20,7 @@ typedef struct {
     ALLEGRO_BITMAP* img_enemy_strong;
     ALLEGRO_BITMAP* img_dead_enemy;
     ALLEGRO_BITMAP* img_game_over;
+    ALLEGRO_BITMAP* img_victory;
     // ALLEGRO_BITMAP* img_boss;
     ALLEGRO_BITMAP* img_shield;
     ALLEGRO_BITMAP* img_sword;
@@ -31,5 +32,9 @@ Renderer_t* init_renderer();
 void render_screen(Game_t* game);
 
 void clear_renderer(Renderer_t* renderer);
+
+void draw_scaled_text(ALLEGRO_FONT* font, ALLEGRO_COLOR color, float x, float y,
+    float xscale, float yscale, int alignment,
+    const char* text);
 
 #endif

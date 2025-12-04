@@ -21,5 +21,6 @@ Battle_t init_battle(int n_enemys);
 
 void free_battle(Battle_t battle);
 int index_selected_enemy(Enemy_t* enemys, int n_enemys);
+_Bool is_battle_over(Battle_t battle);
 
 #endif

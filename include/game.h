@@ -12,7 +12,6 @@ typedef struct game {
     Player_t* player;
     Renderer_t* renderer;
     Battle_t actual_battle;
-    _Bool change_level;
     _Bool game_over;
     int level;
 } Game_t;

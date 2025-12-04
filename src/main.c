@@ -64,6 +64,8 @@ int main(int argc, char* argv[])
         al_wait_for_event(event_queue, &event);
 
         if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE || event.type == ALLEGRO_EVENT_KEY_DOWN && event.keyboard.keycode == ALLEGRO_KEY_Q) {
+
+            printf("testeeeeeeeeeeeeeeeeeeeeee");
             break;
         }
 
@@ -76,16 +78,47 @@ int main(int argc, char* argv[])
             continue;
         }
 
-        if (game->change_level) {
+        if (is_battle_over(game->actual_battle)) {
+
+            // Se for o ultimo level acaba
+            if (game->level == 10) {
+                al_draw_scaled_bitmap(game->renderer->img_victory,
+                    0, 0, al_get_bitmap_width(game->renderer->img_victory), al_get_bitmap_height(game->renderer->img_victory),
+                    0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT,
+                    0);
+                al_flip_display();
+                continue;
+            }
+
+            al_rest(1.5);
+
             game->level += 1;
-            game->change_level = false;
             free_battle(game->actual_battle);
             game->actual_battle = init_battle(2);
+            /* TO-DO: Resetar o player deck*/
+            int count = game->player->deck->actual_length;
+            do {
+                discard_all_hand(game->player);
+                buy_cards_from_deck(game->player->hand, game->player->deck, game->player->discard_stack);
+                count--;
+            } while (count >= 0);
+            game->player->energy = 3;
+            game->player->shield = 0;
 
             // Tela de mudança de fase
+            al_clear_to_color(al_map_rgb(0, 0, 0));
 
-            /* TO-DO: Exibir mensagem de mudando o level*/
-            /* TO-DO: Resetar o player e a batalha*/
+            char buffer[10];
+            ALLEGRO_COLOR text_color = al_map_rgb(255, 255, 255);
+            float scale = 3.5;
+            sprintf(buffer, "Fase %d", game->level);
+
+            draw_scaled_text(game->renderer->font, text_color,
+                (DISPLAY_WIDTH) / (scale * 2.0), DISPLAY_HEIGHT / (scale * 2.0),
+                scale, scale, ALLEGRO_ALIGN_CENTRE, buffer);
+
+            al_flip_display();
+            al_rest(1.5);
         }
 
         if (game->actual_battle.isPlayerTurn && !hand_locked && game->player->hand->actual_length > 0) {
@@ -187,15 +220,30 @@ int main(int argc, char* argv[])
         }
 
         if (event.type == ALLEGRO_EVENT_KEY_DOWN && game->actual_battle.isPlayerTurn) {
-            if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE) {
+            // Só passa a vez se não estiver selecionando inimigo
+            if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE && !card_selected) {
                 inicio_turno_inimigo = al_get_time();
                 discard_all_hand(game->player);
 
                 game->actual_battle.isPlayerTurn = false;
                 hand_locked = true;
+
+                // Zera os escudos inimigos
+                for (int i = 0; i < game->actual_battle.n_enemys; i++) {
+                    game->actual_battle.enemys[i].shield = 0;
+                }
+            }
+
+            // Teclas para teste
+            if (event.keyboard.keycode == ALLEGRO_KEY_X) {
+                game->player->health = 1;
             }
             if (event.keyboard.keycode == ALLEGRO_KEY_SPACE) {
-                game->player->health = 1;
+                for (int i = 0; i < game->actual_battle.n_enemys; i++) {
+                    game->actual_battle.enemys[i].health = 0;
+                    game->actual_battle.enemys[i].died = true;
+                }
+                render_screen(game);
             }
         }
 
@@ -220,6 +268,7 @@ int main(int argc, char* argv[])
                     battle(game);
 
                     game->actual_battle.isPlayerTurn = true;
+
                     hand_locked = false;
 
                     player_init_new_turn(game->player);
@@ -250,7 +299,6 @@ int main(int argc, char* argv[])
     al_destroy_event_queue(event_queue);
     al_destroy_timer(timer);
 
-    free_battle(game->actual_battle);
     free_game(game);
 
     return SUCCESS;

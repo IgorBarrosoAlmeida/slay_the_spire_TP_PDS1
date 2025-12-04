@@ -172,7 +172,4 @@ void battle(Game_t* game)
     if (game->player->health <= 0) {
         game->game_over = true;
     }
-    if (is_battle_over(game->actual_battle)) {
-        game->change_level = true;
-    }
 }

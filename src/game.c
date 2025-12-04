@@ -11,7 +11,6 @@ Game_t* init_game()
     must_init(game->renderer, "Renderer", game);
     game->player = init_player();
     game->level = 1;
-    game->change_level = false;
     game->game_over = false;
     game->actual_battle = init_battle(2);
 
@@ -23,6 +22,7 @@ void free_game(Game_t* game)
     if (!game)
         return;
 
+    free_battle(game->actual_battle);
     free_player(game->player);
     clear_renderer(game->renderer);
     free(game);
