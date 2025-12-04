@@ -77,10 +77,9 @@ int main(int argc, char* argv[])
         }
 
         if (is_battle_over(game->actual_battle)) {
-            game->level += 1;
 
             // Se passou do ultimo level acaba
-            if (game->level == 12) {
+            if (game->level + 1 == 12) {
                 al_draw_scaled_bitmap(game->renderer->img_victory,
                     0, 0, al_get_bitmap_width(game->renderer->img_victory), al_get_bitmap_height(game->renderer->img_victory),
                     0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT,
@@ -90,7 +89,8 @@ int main(int argc, char* argv[])
             }
 
             // Boss battle
-            if (game->level == 11) {
+            if (game->level + 1 == 11) {
+                game->level += 1;
                 al_draw_scaled_bitmap(game->renderer->img_boss_battle,
                     0, 0, al_get_bitmap_width(game->renderer->img_victory), al_get_bitmap_height(game->renderer->img_victory),
                     0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT,
@@ -106,6 +106,7 @@ int main(int argc, char* argv[])
                 al_rest(1.5);
 
                 free_battle(game->actual_battle);
+                game->level += 1;
                 game->actual_battle = init_battle(2, game->level);
 
                 // Reseta player
@@ -151,22 +152,22 @@ int main(int argc, char* argv[])
                             game->player->hand->cards[active_card - 1].active = true;
                         }
                     } else { // seleção de inimigos
-                        int selected = index_selected_enemy(game->actual_battle.enemys, game->actual_battle.n_enemys);
-                        game->actual_battle.enemys[selected].selected = false;
+                        int selected = index_selected_enemy(game->actual_battle.enemies, game->actual_battle.n_enemies);
+                        game->actual_battle.enemies[selected].selected = false;
 
                         if (selected == 0) {
                             // Não seleciona se o inimigo estiver morto
-                            if (!game->actual_battle.enemys[game->actual_battle.n_enemys - 1].died) {
-                                game->actual_battle.enemys[game->actual_battle.n_enemys - 1].selected = true;
+                            if (!game->actual_battle.enemies[game->actual_battle.n_enemies - 1].died) {
+                                game->actual_battle.enemies[game->actual_battle.n_enemies - 1].selected = true;
                             } else {
-                                game->actual_battle.enemys[selected].selected = true;
+                                game->actual_battle.enemies[selected].selected = true;
                             }
                         } else {
                             // Não seleciona se o inimigo estiver morto
-                            if (!game->actual_battle.enemys[selected - 1].died) {
-                                game->actual_battle.enemys[selected - 1].selected = true;
+                            if (!game->actual_battle.enemies[selected - 1].died) {
+                                game->actual_battle.enemies[selected - 1].selected = true;
                             } else {
-                                game->actual_battle.enemys[selected].selected = true;
+                                game->actual_battle.enemies[selected].selected = true;
                             }
                         }
                     }
@@ -183,23 +184,23 @@ int main(int argc, char* argv[])
                             game->player->hand->cards[active_card + 1].active = true;
                         }
                     } else { // seleção de inimigos
-                        int selected = index_selected_enemy(game->actual_battle.enemys, game->actual_battle.n_enemys);
+                        int selected = index_selected_enemy(game->actual_battle.enemies, game->actual_battle.n_enemies);
 
-                        game->actual_battle.enemys[selected].selected = false;
+                        game->actual_battle.enemies[selected].selected = false;
 
-                        if (selected == game->actual_battle.n_enemys - 1) {
+                        if (selected == game->actual_battle.n_enemies - 1) {
                             // Não seleciona se o inimigo estiver morto
-                            if (!game->actual_battle.enemys[0].died) {
-                                game->actual_battle.enemys[0].selected = true;
+                            if (!game->actual_battle.enemies[0].died) {
+                                game->actual_battle.enemies[0].selected = true;
                             } else {
-                                game->actual_battle.enemys[selected].selected = true;
+                                game->actual_battle.enemies[selected].selected = true;
                             }
                         } else {
                             // Não seleciona se o inimigo estiver morto
-                            if (!game->actual_battle.enemys[selected + 1].died) {
-                                game->actual_battle.enemys[selected + 1].selected = true;
+                            if (!game->actual_battle.enemies[selected + 1].died) {
+                                game->actual_battle.enemies[selected + 1].selected = true;
                             } else {
-                                game->actual_battle.enemys[selected].selected = true;
+                                game->actual_battle.enemies[selected].selected = true;
                             }
                         }
                     }
@@ -214,9 +215,9 @@ int main(int argc, char* argv[])
 
                         if (game->player->hand->cards[active_card].type == ATACK) {
                             // Seleciona o primeiro inimigo vivo
-                            for (int i = 0; i < game->actual_battle.n_enemys; i++) {
-                                if (!game->actual_battle.enemys[i].died) {
-                                    game->actual_battle.enemys[i].selected = true;
+                            for (int i = 0; i < game->actual_battle.n_enemies; i++) {
+                                if (!game->actual_battle.enemies[i].died) {
+                                    game->actual_battle.enemies[i].selected = true;
                                     break;
                                 }
                             }
@@ -240,8 +241,8 @@ int main(int argc, char* argv[])
                 hand_locked = true;
 
                 // Zera os escudos inimigos
-                for (int i = 0; i < game->actual_battle.n_enemys; i++) {
-                    game->actual_battle.enemys[i].shield = 0;
+                for (int i = 0; i < game->actual_battle.n_enemies; i++) {
+                    game->actual_battle.enemies[i].shield = 0;
                 }
             }
 
@@ -250,9 +251,9 @@ int main(int argc, char* argv[])
                 game->player->health = 1;
             }
             if (event.keyboard.keycode == ALLEGRO_KEY_SPACE) {
-                for (int i = 0; i < game->actual_battle.n_enemys; i++) {
-                    game->actual_battle.enemys[i].health = 0;
-                    game->actual_battle.enemys[i].died = true;
+                for (int i = 0; i < game->actual_battle.n_enemies; i++) {
+                    game->actual_battle.enemies[i].health = 0;
+                    game->actual_battle.enemies[i].died = true;
                 }
                 render_screen(game);
             }

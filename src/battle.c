@@ -1,23 +1,23 @@
 #include "battle.h"
 #include "game.h"
 
-Battle_t init_battle(int n_enemys, int level)
+Battle_t init_battle(int n_enemies, int level)
 {
     Battle_t battle;
     battle.isPlayerTurn = true;
-    battle.n_enemys = n_enemys;
-    battle.enemys = (Enemy_t*)malloc(sizeof(Enemy_t) * n_enemys);
+    battle.n_enemies = n_enemies;
+    battle.enemies = (Enemy_t*)malloc(sizeof(Enemy_t) * n_enemies);
 
-    if (n_enemys == 1) {
-        battle.enemys[0] = init_enemy(BOSS);
+    if (n_enemies == 1) {
+        battle.enemies[0] = init_enemy(BOSS);
     } else {
-        for (int i = 0; i < n_enemys; i++) {
+        for (int i = 0; i < n_enemies; i++) {
             // chance de aparecer um inimigo forte aumenta a cada fase
             int strong_enemy_percent = 1 + (rand() % 100);
             if (strong_enemy_percent <= (5 * level) / 2) { // No enunciado está 5% mas achei mais condizente assim
-                battle.enemys[i] = init_enemy(STRONG);
+                battle.enemies[i] = init_enemy(STRONG);
             } else {
-                battle.enemys[i] = init_enemy(WEAK);
+                battle.enemies[i] = init_enemy(WEAK);
             }
         }
     }
@@ -26,13 +26,13 @@ Battle_t init_battle(int n_enemys, int level)
 
 void free_battle(Battle_t battle)
 {
-    if (!battle.enemys) // Batalha não foi inicializada
+    if (!battle.enemies) // Batalha não foi inicializada
         return;
 
-    for (int i = 0; i < battle.n_enemys; i++) {
-        free_enemy(&(battle.enemys[i]));
+    for (int i = 0; i < battle.n_enemies; i++) {
+        free_enemy(&(battle.enemies[i]));
     }
-    free(battle.enemys);
+    free(battle.enemies);
 }
 
 void player_move(Player_t* player, Enemy_t* enemy)
@@ -121,9 +121,9 @@ _Bool is_battle_over(Battle_t battle)
 {
     _Bool result = true;
 
-    for (int i = 0; i < battle.n_enemys; i++) {
+    for (int i = 0; i < battle.n_enemies; i++) {
         // Se um não morreu não acabou
-        if (!battle.enemys[i].died) {
+        if (!battle.enemies[i].died) {
             result = false;
         }
     }
@@ -131,10 +131,10 @@ _Bool is_battle_over(Battle_t battle)
     return result;
 }
 
-int index_selected_enemy(Enemy_t* enemys, int n_enemys)
+int index_selected_enemy(Enemy_t* enemies, int n_enemies)
 {
-    for (int i = 0; i < n_enemys; i++) {
-        if (enemys[i].selected) {
+    for (int i = 0; i < n_enemies; i++) {
+        if (enemies[i].selected) {
             return i;
         }
     }
@@ -149,11 +149,11 @@ void battle(Game_t* game)
         int active_card = index_card_active(game->player->hand);
 
         if (game->player->hand->cards[active_card].type == ATACK) {
-            for (int i = 0; i < game->actual_battle.n_enemys; i++) {
-                if (game->actual_battle.enemys[i].selected) {
-                    player_move(game->player, &(game->actual_battle.enemys[i]));
+            for (int i = 0; i < game->actual_battle.n_enemies; i++) {
+                if (game->actual_battle.enemies[i].selected) {
+                    player_move(game->player, &(game->actual_battle.enemies[i]));
 
-                    game->actual_battle.enemys[i].selected = false;
+                    game->actual_battle.enemies[i].selected = false;
                     discard_active_card(game);
                     break;
                 }
@@ -168,9 +168,9 @@ void battle(Game_t* game)
         }
         return;
     } else {
-        for (int i = 0; i < game->actual_battle.n_enemys; i++) {
-            if (!game->actual_battle.enemys[i].died) {
-                enemy_move(game->player, &(game->actual_battle.enemys[i]));
+        for (int i = 0; i < game->actual_battle.n_enemies; i++) {
+            if (!game->actual_battle.enemies[i].died) {
+                enemy_move(game->player, &(game->actual_battle.enemies[i]));
             }
         }
     }

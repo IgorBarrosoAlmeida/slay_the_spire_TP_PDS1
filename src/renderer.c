@@ -345,11 +345,11 @@ void render_player_hand(Renderer_t* renderer, PlayerHand_t* hand)
     }
 }
 
-void render_enemies(Renderer_t* renderer, int n_enemys, Enemy_t* enemys)
+void render_enemies(Renderer_t* renderer, int n_enemies, Enemy_t* enemies)
 {
-    for (int i = 0; i < n_enemys; i++) {
+    for (int i = 0; i < n_enemies; i++) {
         float x_icon, y_icon;
-        if (enemys[i].type == BOSS) {
+        if (enemies[i].type == BOSS) {
             x_icon = ENEMIES_BEGIN_X + 300;
             y_icon = ENEMIES_BEGIN_Y - 300;
         } else {
@@ -357,7 +357,7 @@ void render_enemies(Renderer_t* renderer, int n_enemys, Enemy_t* enemys)
             y_icon = ENEMIES_BEGIN_Y - 75;
         }
 
-        if (enemys[i].actions[enemys[i].next_action].type == ATACK) {
+        if (enemies[i].actions[enemies[i].next_action].type == ATACK) {
             al_draw_scaled_bitmap(
                 renderer->img_sword,
                 0, 0,
@@ -383,21 +383,21 @@ void render_enemies(Renderer_t* renderer, int n_enemys, Enemy_t* enemys)
         char buffer[10];
         ALLEGRO_COLOR text_color = al_map_rgb(255, 255, 255);
         float scale = 2.0;
-        sprintf(buffer, "%d", enemys[i].actions[enemys[i].next_action].effect);
+        sprintf(buffer, "%d", enemies[i].actions[enemies[i].next_action].effect);
 
         draw_scaled_text(renderer->font, text_color,
             (x_icon + 150) / scale, (y_icon + 30) / scale,
             scale, scale, ALLEGRO_ALIGN_LEFT, buffer);
 
-        if (enemys[i].type == WEAK) {
+        if (enemies[i].type == WEAK) {
             render_creature(renderer, ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)), ENEMIES_BEGIN_Y,
-                ENEMIES_WIDTH, enemys[i].max_health, enemys[i].health, enemys[i].shield, enemys[i].died ? -1 : 1, enemys[i].selected);
-        } else if (enemys[i].type == STRONG) {
+                ENEMIES_WIDTH, enemies[i].max_health, enemies[i].health, enemies[i].shield, enemies[i].died ? -1 : 1, enemies[i].selected);
+        } else if (enemies[i].type == STRONG) {
             render_creature(renderer, ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)), ENEMIES_BEGIN_Y,
-                ENEMIES_WIDTH, enemys[i].max_health, enemys[i].health, enemys[i].shield, enemys[i].died ? -1 : 2, enemys[i].selected);
+                ENEMIES_WIDTH, enemies[i].max_health, enemies[i].health, enemies[i].shield, enemies[i].died ? -1 : 2, enemies[i].selected);
         } else {
             render_creature(renderer, ENEMIES_BEGIN_X, ENEMIES_BEGIN_Y - 200,
-                BOSS_WIDTH + 200, enemys[i].max_health, enemys[i].health, enemys[i].shield, enemys[i].died ? -1 : 3, enemys[i].selected);
+                BOSS_WIDTH + 200, enemies[i].max_health, enemies[i].health, enemies[i].shield, enemies[i].died ? -1 : 3, enemies[i].selected);
         }
     }
 }
@@ -422,26 +422,48 @@ void render_energy(Renderer_t* renderer, int qnt, int max, float pos_x, float po
         draw_scaled_text(renderer->font, text_color, pos_x, pos_y + 20, 2.0, 2.0, ALLEGRO_ALIGN_LEFT, text);
     }
 }
-
 void render_instruction(Renderer_t* renderer)
 {
-    float scale = 2.0;
-    ALLEGRO_COLOR text_color = al_map_rgb(255, 255, 255);
+    float scale = 2.0; // O texto será 2x maior
+    ALLEGRO_COLOR text_color = al_map_rgb(255, 255, 255); // Branco
 
-    float txt_x = DISPLAY_WIDTH - 100 / scale;
-    float txt_y = 30 / scale;
+    // LÓGICA CORRIGIDA:
+    // 1. Pegamos a largura total (DISPLAY_WIDTH).
+    // 2. Subtraímos 20px para dar uma margem da borda.
+    // 3. Dividimos por 'scale' porque a função de desenho vai multiplicar depois.
+    float txt_x = (DISPLAY_WIDTH + 500) / scale;
+    float txt_y = 20 / scale; // Margem superior
 
-    float line_height = 20;
+    float line_height = 15; // Ajuste o espaçamento entre linhas se necessário
 
     char buffer[64];
 
-    sprintf(buffer, "Enter: Confirmar seleção");
-    draw_scaled_text(renderer->font, text_color, txt_x, txt_y + line_height,
-        scale, scale, ALLEGRO_ALIGN_LEFT, buffer);
+    // Dica: Use ALLEGRO_ALIGN_RIGHT para o texto "encostar" na direita
+    // e crescer para a esquerda (para dentro da tela).
 
-    sprintf(buffer, "Espaço: Passar para proxima fase");
-    draw_scaled_text(renderer->font, text_color, txt_x, txt_y + (line_height * 2),
-        scale, scale, ALLEGRO_ALIGN_LEFT, buffer);
+    sprintf(buffer, "Setas: Seleção");
+    draw_scaled_text(renderer->font, text_color, txt_x, txt_y,
+        scale, scale, ALLEGRO_ALIGN_RIGHT, buffer);
+
+    sprintf(buffer, "Enter: Confirmar");
+    draw_scaled_text(renderer->font, text_color, txt_x, txt_y + line_height,
+        scale, scale, ALLEGRO_ALIGN_RIGHT, buffer);
+
+    sprintf(buffer, "Q: Sair do jogo");
+    draw_scaled_text(renderer->font, text_color, txt_x, txt_y + line_height * 2,
+        scale, scale, ALLEGRO_ALIGN_RIGHT, buffer);
+
+    sprintf(buffer, "ESQ: Encerrar turno");
+    draw_scaled_text(renderer->font, text_color, txt_x, txt_y + line_height * 3,
+        scale, scale, ALLEGRO_ALIGN_RIGHT, buffer);
+
+    sprintf(buffer, "Espaco: Proxima Fase");
+    draw_scaled_text(renderer->font, text_color, txt_x, txt_y + line_height * 4,
+        scale, scale, ALLEGRO_ALIGN_RIGHT, buffer);
+
+    sprintf(buffer, "X: vida do jogador = 1");
+    draw_scaled_text(renderer->font, text_color, txt_x, txt_y + line_height * 5,
+        scale, scale, ALLEGRO_ALIGN_RIGHT, buffer);
 }
 
 void render_screen(Game_t* game)
@@ -454,7 +476,7 @@ void render_screen(Game_t* game)
         game->player->discard_stack->actual_length, game->player->discard_stack->max_length); // pilha discarte
     render_player(game->renderer, game->player);
     render_energy(game->renderer, game->player->energy, 3, 10.0, 10.0);
-    render_enemies(game->renderer, game->actual_battle.n_enemys, game->actual_battle.enemys);
+    render_enemies(game->renderer, game->actual_battle.n_enemies, game->actual_battle.enemies);
     render_player_hand(game->renderer, game->player->hand);
     render_instruction(game->renderer);
 
