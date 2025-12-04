@@ -31,20 +31,15 @@ void free_battle(Battle_t battle)
     free(battle.enemys);
 }
 
-Type_t player_move(Player_t* player, Enemy_t* enemy)
+void player_move(Player_t* player, Enemy_t* enemy)
 {
     int card_index = index_card_active(player->hand);
-
-    if (player->energy < player->hand->cards[card_index].cost) {
-        return player->hand->cards[card_index].type;
-    }
 
     switch (player->hand->cards[card_index].type) {
     case SPECIAL:
         discard_all_hand(player);
         buy_cards_from_deck(player->hand, player->deck, player->discard_stack);
 
-        return SPECIAL;
         break;
     case ATACK: {
         int damage = player->hand->cards[card_index].effect;
@@ -63,6 +58,7 @@ Type_t player_move(Player_t* player, Enemy_t* enemy)
         if (damage > 0) {
             if (enemy->health - damage <= 0) {
                 enemy->health = 0;
+                enemy->died = true;
             } else {
                 enemy->health -= damage;
             }
@@ -77,7 +73,6 @@ Type_t player_move(Player_t* player, Enemy_t* enemy)
     }
 
     player->energy -= player->hand->cards[card_index].cost;
-    return player->hand->cards[card_index].type;
 }
 
 void enemy_move(Player_t* player, Enemy_t* enemy)
@@ -123,7 +118,8 @@ _Bool is_battle_over(Battle_t battle)
     _Bool result = true;
 
     for (int i = 0; i < battle.n_enemys; i++) {
-        if (battle.enemys[i].health > 0) {
+        // Se um não morreu não acabou
+        if (!battle.enemys[i].died) {
             result = false;
         }
     }
@@ -131,20 +127,42 @@ _Bool is_battle_over(Battle_t battle)
     return result;
 }
 
+int index_selected_enemy(Enemy_t* enemys, int n_enemys)
+{
+    for (int i = 0; i < n_enemys; i++) {
+        if (enemys[i].selected) {
+            return i;
+        }
+    }
+
+    // Se não encontrar o inimigo
+    return -1;
+}
+
 void battle(Game_t* game)
 {
     if (game->actual_battle.isPlayerTurn) {
-        for (int i = 0; i < game->actual_battle.n_enemys; i++) {
-            if (game->actual_battle.enemys[i].selected) {
-                int energy = game->player->energy;
-                Type_t type = player_move(game->player, &(game->actual_battle.enemys[i]));
+        int active_card = index_card_active(game->player->hand);
 
-                if (type != SPECIAL) {
-                    discard_active_card(game, energy);
+        if (game->player->hand->cards[active_card].type == ATACK) {
+            for (int i = 0; i < game->actual_battle.n_enemys; i++) {
+                if (game->actual_battle.enemys[i].selected) {
+                    player_move(game->player, &(game->actual_battle.enemys[i]));
+
+                    game->actual_battle.enemys[i].selected = false;
+                    discard_active_card(game);
+                    break;
                 }
-                break;
+            }
+        } else {
+            Type_t type = game->player->hand->cards[active_card].type;
+            player_move(game->player, NULL);
+
+            if (type == DEFENSE) {
+                discard_active_card(game);
             }
         }
+        return;
     } else {
         for (int i = 0; i < game->actual_battle.n_enemys; i++) {
             enemy_move(game->player, &(game->actual_battle.enemys[i]));

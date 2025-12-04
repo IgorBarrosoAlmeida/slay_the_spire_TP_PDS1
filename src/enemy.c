@@ -8,9 +8,9 @@ Enemy_t init_enemy(EnemyType_t type)
     enemy.type = type;
     enemy.next_action = 0;
     enemy.shield = 0;
-    /* TO-DO: Tirar valor de teste */
-    enemy.selected = true;
-    // enemy.selected = false;
+    enemy.selected = false;
+    enemy.died = false;
+
     if (enemy.type == WEAK) {
         enemy.health = WEAK_ENEMY_MIN_HEALTH + (rand() % (WEAK_ENEMY_MAX_HEALTH - WEAK_ENEMY_MIN_HEALTH + 1));
 

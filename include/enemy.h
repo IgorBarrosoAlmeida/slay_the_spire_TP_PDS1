@@ -18,6 +18,7 @@ typedef struct enemy {
     int next_action;
     int n_actions;
     _Bool selected;
+    _Bool died;
     Card_t* actions;
 } Enemy_t;
 

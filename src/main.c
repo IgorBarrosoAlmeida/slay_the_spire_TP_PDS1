@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
     ALLEGRO_DISPLAY* display = NULL;
     ALLEGRO_EVENT_QUEUE* event_queue = NULL;
     ALLEGRO_TIMER* timer = NULL;
-    _Bool redraw = true, move = false, hand_locked = false;
+    _Bool redraw = true, card_selected = false, hand_locked = false, enemy_selected = false;
     double inicio_turno_inimigo = 0;
     // Inicializa a semente aleatória com o tempo atual do sistema
     srand(time(NULL));
@@ -68,8 +68,11 @@ int main(int argc, char* argv[])
         }
 
         if (game->game_over) {
-            /* TO-DO: tela de game over */
-
+            al_draw_scaled_bitmap(game->renderer->img_game_over,
+                0, 0, al_get_bitmap_width(game->renderer->img_game_over), al_get_bitmap_height(game->renderer->img_game_over),
+                0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT,
+                0);
+            al_flip_display();
             continue;
         }
 
@@ -79,36 +82,100 @@ int main(int argc, char* argv[])
             free_battle(game->actual_battle);
             game->actual_battle = init_battle(2);
 
+            // Tela de mudança de fase
+
             /* TO-DO: Exibir mensagem de mudando o level*/
             /* TO-DO: Resetar o player e a batalha*/
         }
 
         if (game->actual_battle.isPlayerTurn && !hand_locked && game->player->hand->actual_length > 0) {
             if (event.type == ALLEGRO_EVENT_KEY_DOWN) {
+                int active_card = index_card_active(game->player->hand);
+
                 switch (event.keyboard.keycode) {
                 case ALLEGRO_KEY_LEFT: {
-                    int index_atual = index_card_active(game->player->hand);
-                    game->player->hand->cards[index_atual].active = false;
-                    if (index_atual == 0) {
-                        game->player->hand->cards[game->player->hand->actual_length - 1].active = true;
-                    } else {
-                        game->player->hand->cards[index_atual - 1].active = true;
+                    if (!card_selected) {
+                        game->player->hand->cards[active_card].active = false;
+
+                        if (active_card == 0) {
+                            game->player->hand->cards[game->player->hand->actual_length - 1].active = true;
+                        } else {
+                            game->player->hand->cards[active_card - 1].active = true;
+                        }
+                    } else { // seleção de inimigos
+                        int selected = index_selected_enemy(game->actual_battle.enemys, game->actual_battle.n_enemys);
+                        game->actual_battle.enemys[selected].selected = false;
+
+                        if (selected == 0) {
+                            // Não seleciona se o inimigo estiver morto
+                            if (!game->actual_battle.enemys[game->actual_battle.n_enemys - 1].died) {
+                                game->actual_battle.enemys[game->actual_battle.n_enemys - 1].selected = true;
+                            } else {
+                                game->actual_battle.enemys[selected].selected = true;
+                            }
+                        } else {
+                            // Não seleciona se o inimigo estiver morto
+                            if (!game->actual_battle.enemys[selected - 1].died) {
+                                game->actual_battle.enemys[selected - 1].selected = true;
+                            } else {
+                                game->actual_battle.enemys[selected].selected = true;
+                            }
+                        }
                     }
+
                     break;
                 }
                 case ALLEGRO_KEY_RIGHT: {
-                    int index_atual = index_card_active(game->player->hand);
-                    game->player->hand->cards[index_atual].active = false;
+                    if (!card_selected) {
+                        game->player->hand->cards[active_card].active = false;
 
-                    if (index_atual == game->player->hand->actual_length - 1) {
-                        game->player->hand->cards[0].active = true;
-                    } else {
-                        game->player->hand->cards[index_atual + 1].active = true;
+                        if (active_card == game->player->hand->actual_length - 1) {
+                            game->player->hand->cards[0].active = true;
+                        } else {
+                            game->player->hand->cards[active_card + 1].active = true;
+                        }
+                    } else { // seleção de inimigos
+                        int selected = index_selected_enemy(game->actual_battle.enemys, game->actual_battle.n_enemys);
+
+                        game->actual_battle.enemys[selected].selected = false;
+
+                        if (selected == game->actual_battle.n_enemys - 1) {
+                            // Não seleciona se o inimigo estiver morto
+                            if (!game->actual_battle.enemys[0].died) {
+                                game->actual_battle.enemys[0].selected = true;
+                            } else {
+                                game->actual_battle.enemys[selected].selected = true;
+                            }
+                        } else {
+                            // Não seleciona se o inimigo estiver morto
+                            if (!game->actual_battle.enemys[selected + 1].died) {
+                                game->actual_battle.enemys[selected + 1].selected = true;
+                            } else {
+                                game->actual_battle.enemys[selected].selected = true;
+                            }
+                        }
                     }
                     break;
                 }
                 case ALLEGRO_KEY_ENTER: {
-                    move = true;
+                    if (card_selected) {
+                        enemy_selected = true;
+                    } else if (game->player->hand->cards[active_card].cost <= game->player->energy) {
+                        // Começa a seleção do inimigo
+                        card_selected = true;
+
+                        if (game->player->hand->cards[active_card].type == ATACK) {
+                            // Seleciona o primeiro inimigo vivo
+                            for (int i = 0; i < game->actual_battle.n_enemys; i++) {
+                                if (!game->actual_battle.enemys[i].died) {
+                                    game->actual_battle.enemys[i].selected = true;
+                                    break;
+                                }
+                            }
+                        } else {
+                            enemy_selected = true;
+                        }
+                    }
                     break;
                 }
                 }
@@ -119,13 +186,17 @@ int main(int argc, char* argv[])
             hand_locked = true;
         }
 
-        if (event.type == ALLEGRO_EVENT_KEY_DOWN && event.keyboard.keycode == ALLEGRO_KEY_ESCAPE
-            && game->actual_battle.isPlayerTurn) {
-            inicio_turno_inimigo = al_get_time();
-            discard_all_hand(game->player);
+        if (event.type == ALLEGRO_EVENT_KEY_DOWN && game->actual_battle.isPlayerTurn) {
+            if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE) {
+                inicio_turno_inimigo = al_get_time();
+                discard_all_hand(game->player);
 
-            game->actual_battle.isPlayerTurn = false;
-            hand_locked = true;
+                game->actual_battle.isPlayerTurn = false;
+                hand_locked = true;
+            }
+            if (event.keyboard.keycode == ALLEGRO_KEY_SPACE) {
+                game->player->health = 1;
+            }
         }
 
         if (event.type == ALLEGRO_EVENT_TIMER) {
@@ -134,11 +205,12 @@ int main(int argc, char* argv[])
 
         if (redraw && al_is_event_queue_empty(event_queue)) {
 
-            if (move && game->actual_battle.isPlayerTurn) {
-                int energy = game->player->energy;
+            if (card_selected && enemy_selected && game->actual_battle.isPlayerTurn) {
+                // Se não tem energia o suficiente não faz nada
                 battle(game);
 
-                move = false;
+                card_selected = false;
+                enemy_selected = false;
             }
 
             else if (!game->actual_battle.isPlayerTurn) {

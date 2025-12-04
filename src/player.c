@@ -33,6 +33,9 @@ int index_card_active(PlayerHand_t* hand)
             return i;
         }
     }
+
+    // Se não tiver nenhuma ativa
+    return -1;
 }
 
 void buy_cards_from_deck(PlayerHand_t* player_hand, Deck_t* deck, Deck_t* discard_stack)
@@ -96,21 +99,19 @@ void discard_all_hand(Player_t* player)
     }
 }
 
-void discard_active_card(Game_t* game, int energy)
+void discard_active_card(Game_t* game)
 {
     int card_index = index_card_active(game->player->hand);
 
-    if (game->player->hand->cards[card_index].cost <= energy) {
-        Card_t card = discard(game->player->hand, card_index);
-        card.active = false;
+    Card_t card = discard(game->player->hand, card_index);
+    card.active = false;
 
-        if (game->player->discard_stack->actual_length == game->player->discard_stack->max_length) {
-            /* TO-DO: Tratar - Está tentando adicionar sendo que já tem o numero maximo de cartas */
-        } else {
-            game->player->discard_stack->actual_length += 1;
-            game->player->discard_stack->cards[game->player->discard_stack->actual_length - 1] = card;
-            game->player->hand->cards[0].active = true;
-        }
+    if (game->player->discard_stack->actual_length == game->player->discard_stack->max_length) {
+        /* TO-DO: Tratar - Está tentando adicionar sendo que já tem o numero maximo de cartas */
+    } else {
+        game->player->discard_stack->actual_length += 1;
+        game->player->discard_stack->cards[game->player->discard_stack->actual_length - 1] = card;
+        game->player->hand->cards[0].active = true;
     }
 }
 

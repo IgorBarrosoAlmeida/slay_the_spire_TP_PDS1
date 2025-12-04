@@ -74,6 +74,14 @@ Renderer_t* init_renderer()
     if (!renderer->img_enemy_strong) {
         return NULL;
     }
+    renderer->img_dead_enemy = al_load_bitmap("./assets/images/dead_enemy.png");
+    if (!renderer->img_dead_enemy) {
+        return NULL;
+    }
+    renderer->img_game_over = al_load_bitmap("./assets/images/game_over.png");
+    if (!renderer->img_game_over) {
+        return NULL;
+    }
 
     // icones
     renderer->img_shield = al_load_bitmap("./assets/images/shield_icon.png");
@@ -148,6 +156,7 @@ void render_deck(Renderer_t* renderer, int x_left, int y_top, char* type, int co
 
     char buffer[64];
 
+    sprintf(buffer, "%s", type);
     draw_scaled_text(renderer->font, text_color, txt_x, txt_y,
         scale, scale, ALLEGRO_ALIGN_LEFT, buffer);
 
@@ -183,7 +192,7 @@ void render_health_bar(float x, float y, float width, float height, int current_
     al_draw_rectangle(x, y, x + width, y + height, al_map_rgb(255, 255, 255), 2.0);
 }
 
-void render_creature(const Renderer_t* renderer, int begin_x, int begin_y, int width, int max_health, int health, int shield, int img_id)
+void render_creature(const Renderer_t* renderer, int begin_x, int begin_y, int width, int max_health, int health, int shield, int img_id, _Bool is_selected)
 {
     switch (img_id) {
     case 0:
@@ -212,8 +221,19 @@ void render_creature(const Renderer_t* renderer, int begin_x, int begin_y, int w
         al_draw_scaled_bitmap(
             renderer->img_enemy_strong,
             0, 0,
-            al_get_bitmap_width(renderer->img_enemy_weak),
-            al_get_bitmap_height(renderer->img_enemy_weak),
+            al_get_bitmap_width(renderer->img_enemy_strong),
+            al_get_bitmap_height(renderer->img_enemy_strong),
+            begin_x, begin_y,
+            width,
+            200,
+            0);
+        break;
+    case -1:
+        al_draw_scaled_bitmap(
+            renderer->img_dead_enemy,
+            0, 0,
+            al_get_bitmap_width(renderer->img_dead_enemy),
+            al_get_bitmap_height(renderer->img_dead_enemy),
             begin_x, begin_y,
             width,
             200,
@@ -236,6 +256,11 @@ void render_creature(const Renderer_t* renderer, int begin_x, int begin_y, int w
     sprintf(buffer, "Escudo: %d", shield);
     draw_scaled_text(renderer->font, text_color, txt_x, txt_y,
         scale, scale, ALLEGRO_ALIGN_LEFT, buffer);
+
+    // select box
+    if (is_selected) {
+        al_draw_rectangle(begin_x, begin_y, begin_x + width, begin_y + (width / 2), al_map_rgb(255, 255, 255), 2.0);
+    }
 }
 
 void render_card(const Renderer_t* renderer, int x_left, int y_top, Card_t card)
@@ -313,16 +338,18 @@ void render_enemies(Renderer_t* renderer, int n_enemys, Enemy_t* enemys)
                 0);
         }
         if (enemys[i].type == WEAK) {
-            render_creature(renderer, ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)), ENEMIES_BEGIN_Y, ENEMIES_WIDTH, enemys[i].max_health, enemys[i].health, enemys[i].shield, 1);
+            render_creature(renderer, ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)), ENEMIES_BEGIN_Y,
+                ENEMIES_WIDTH, enemys[i].max_health, enemys[i].health, enemys[i].shield, enemys[i].died ? -1 : 1, enemys[i].selected);
         } else {
-            render_creature(renderer, ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)), ENEMIES_BEGIN_Y, ENEMIES_WIDTH, enemys[i].max_health, enemys[i].health, enemys[i].shield, 2);
+            render_creature(renderer, ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)), ENEMIES_BEGIN_Y,
+                ENEMIES_WIDTH, enemys[i].max_health, enemys[i].health, enemys[i].shield, enemys[i].died ? -1 : 2, enemys[i].selected);
         }
     }
 }
 
 void render_player(Renderer_t* renderer, Player_t* player)
 {
-    render_creature(renderer, PLAYER_BEGIN_X, PLAYER_BEGIN_Y, PLAYER_WIDTH, PLAYER_MAX_HEALTH, player->health, player->shield, 0);
+    render_creature(renderer, PLAYER_BEGIN_X, PLAYER_BEGIN_Y, PLAYER_WIDTH, PLAYER_MAX_HEALTH, player->health, player->shield, 0, false);
 }
 
 void render_energy(Renderer_t* renderer, int qnt, int max, float pos_x, float pos_y)

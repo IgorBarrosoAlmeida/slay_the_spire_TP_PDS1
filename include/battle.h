@@ -20,5 +20,6 @@ void battle(Game_t* game);
 Battle_t init_battle(int n_enemys);
 
 void free_battle(Battle_t battle);
+int index_selected_enemy(Enemy_t* enemys, int n_enemys);
 
 #endif

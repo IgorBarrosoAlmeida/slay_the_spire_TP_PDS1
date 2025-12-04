@@ -18,6 +18,8 @@ typedef struct {
     ALLEGRO_BITMAP* img_player;
     ALLEGRO_BITMAP* img_enemy_weak;
     ALLEGRO_BITMAP* img_enemy_strong;
+    ALLEGRO_BITMAP* img_dead_enemy;
+    ALLEGRO_BITMAP* img_game_over;
     // ALLEGRO_BITMAP* img_boss;
     ALLEGRO_BITMAP* img_shield;
     ALLEGRO_BITMAP* img_sword;
