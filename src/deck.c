@@ -15,8 +15,6 @@ Deck_t* init_deck()
     FILE* deck_file = fopen("./assets/deck.txt", "r");
 
     if (deck_file == NULL) {
-        printf("Erro ao ler o arquivo, criando deck estatico");
-
         for (int i = 0; i < deck->max_length; i++) {
             deck->cards[i].cost = 1;
             deck->cards[i].effect = 3;

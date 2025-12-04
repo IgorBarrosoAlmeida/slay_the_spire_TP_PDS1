@@ -64,8 +64,6 @@ int main(int argc, char* argv[])
         al_wait_for_event(event_queue, &event);
 
         if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE || event.type == ALLEGRO_EVENT_KEY_DOWN && event.keyboard.keycode == ALLEGRO_KEY_Q) {
-
-            printf("testeeeeeeeeeeeeeeeeeeeeee");
             break;
         }
 
@@ -79,9 +77,10 @@ int main(int argc, char* argv[])
         }
 
         if (is_battle_over(game->actual_battle)) {
+            game->level += 1;
 
-            // Se for o ultimo level acaba
-            if (game->level == 10) {
+            // Se passou do ultimo level acaba
+            if (game->level == 12) {
                 al_draw_scaled_bitmap(game->renderer->img_victory,
                     0, 0, al_get_bitmap_width(game->renderer->img_victory), al_get_bitmap_height(game->renderer->img_victory),
                     0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT,
@@ -90,35 +89,51 @@ int main(int argc, char* argv[])
                 continue;
             }
 
-            al_rest(1.5);
+            // Boss battle
+            if (game->level == 11) {
+                al_draw_scaled_bitmap(game->renderer->img_boss_battle,
+                    0, 0, al_get_bitmap_width(game->renderer->img_victory), al_get_bitmap_height(game->renderer->img_victory),
+                    0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT,
+                    0);
+                al_flip_display();
+                al_rest(2.5);
 
-            game->level += 1;
-            free_battle(game->actual_battle);
-            game->actual_battle = init_battle(2);
-            /* TO-DO: Resetar o player deck*/
-            int count = game->player->deck->actual_length;
-            do {
-                discard_all_hand(game->player);
-                buy_cards_from_deck(game->player->hand, game->player->deck, game->player->discard_stack);
-                count--;
-            } while (count >= 0);
-            game->player->energy = 3;
-            game->player->shield = 0;
+                free_battle(game->actual_battle);
+                game->actual_battle = init_battle(1, game->level + 1);
+                hand_locked = false;
+            } else {
 
-            // Tela de mudança de fase
-            al_clear_to_color(al_map_rgb(0, 0, 0));
+                al_rest(1.5);
 
-            char buffer[10];
-            ALLEGRO_COLOR text_color = al_map_rgb(255, 255, 255);
-            float scale = 3.5;
-            sprintf(buffer, "Fase %d", game->level);
+                free_battle(game->actual_battle);
+                game->actual_battle = init_battle(2, game->level);
 
-            draw_scaled_text(game->renderer->font, text_color,
-                (DISPLAY_WIDTH) / (scale * 2.0), DISPLAY_HEIGHT / (scale * 2.0),
-                scale, scale, ALLEGRO_ALIGN_CENTRE, buffer);
+                // Reseta player
+                int count = game->player->deck->actual_length;
+                do {
+                    discard_all_hand(game->player);
+                    buy_cards_from_deck(game->player->hand, game->player->deck, game->player->discard_stack);
+                    count--;
+                } while (count >= 0);
+                game->player->energy = 3;
+                game->player->shield = 0;
+                hand_locked = false;
 
-            al_flip_display();
-            al_rest(1.5);
+                // Tela de mudança de fase
+                al_clear_to_color(al_map_rgb(0, 0, 0));
+
+                char buffer[10];
+                ALLEGRO_COLOR text_color = al_map_rgb(255, 255, 255);
+                float scale = 3.5;
+                sprintf(buffer, "Fase %d", game->level);
+
+                draw_scaled_text(game->renderer->font, text_color,
+                    (DISPLAY_WIDTH) / (scale * 2.0), DISPLAY_HEIGHT / (scale * 2.0),
+                    scale, scale, ALLEGRO_ALIGN_CENTRE, buffer);
+
+                al_flip_display();
+                al_rest(1.5);
+            }
         }
 
         if (game->actual_battle.isPlayerTurn && !hand_locked && game->player->hand->actual_length > 0) {
@@ -213,10 +228,6 @@ int main(int argc, char* argv[])
                 }
                 }
             }
-        }
-
-        if (game->player->energy <= 0) {
-            hand_locked = true;
         }
 
         if (event.type == ALLEGRO_EVENT_KEY_DOWN && game->actual_battle.isPlayerTurn) {

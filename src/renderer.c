@@ -34,8 +34,8 @@ Renderer_t* init_renderer()
         return NULL;
     }
 
-    al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
-    al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
+    // al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
+    // al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
     al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
 
     renderer->display = al_create_display(DISPLAY_WIDTH, DISPLAY_HEIGHT);
@@ -84,6 +84,15 @@ Renderer_t* init_renderer()
     }
     renderer->img_victory = al_load_bitmap("./assets/images/victory.png");
     if (!renderer->img_victory) {
+        return NULL;
+    }
+    renderer->img_boss_battle = al_load_bitmap("./assets/images/boss_battle.png");
+    if (!renderer->img_boss_battle) {
+        return NULL;
+    }
+
+    renderer->img_boss = al_load_bitmap("./assets/images/dragon.png");
+    if (!renderer->img_boss_battle) {
         return NULL;
     }
 
@@ -232,6 +241,17 @@ void render_creature(const Renderer_t* renderer, int begin_x, int begin_y, int w
             200,
             0);
         break;
+    case 3:
+        al_draw_scaled_bitmap(
+            renderer->img_boss,
+            0, 0,
+            al_get_bitmap_width(renderer->img_boss),
+            al_get_bitmap_height(renderer->img_boss),
+            begin_x, begin_y,
+            BOSS_WIDTH,
+            BOSS_HEIGHT,
+            0);
+        break;
     case -1:
         al_draw_scaled_bitmap(
             renderer->img_dead_enemy,
@@ -244,9 +264,14 @@ void render_creature(const Renderer_t* renderer, int begin_x, int begin_y, int w
             0);
         break;
     }
-    float x_end = begin_x + width + 100;
+    float health_bar_y;
+    if (img_id == 3) {
+        health_bar_y = begin_y + (width / 2.5);
+        begin_x += 300;
+    } else {
+        health_bar_y = begin_y + 200;
+    }
 
-    float health_bar_y = begin_y + 200;
     render_health_bar(begin_x, health_bar_y, 300, 50, health, max_health);
 
     float scale = 2.0;
@@ -323,13 +348,22 @@ void render_player_hand(Renderer_t* renderer, PlayerHand_t* hand)
 void render_enemies(Renderer_t* renderer, int n_enemys, Enemy_t* enemys)
 {
     for (int i = 0; i < n_enemys; i++) {
+        float x_icon, y_icon;
+        if (enemys[i].type == BOSS) {
+            x_icon = ENEMIES_BEGIN_X + 300;
+            y_icon = ENEMIES_BEGIN_Y - 300;
+        } else {
+            x_icon = ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)) + 75;
+            y_icon = ENEMIES_BEGIN_Y - 75;
+        }
+
         if (enemys[i].actions[enemys[i].next_action].type == ATACK) {
             al_draw_scaled_bitmap(
                 renderer->img_sword,
                 0, 0,
                 al_get_bitmap_width(renderer->img_sword),
                 al_get_bitmap_height(renderer->img_sword),
-                ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)) + 75, ENEMIES_BEGIN_Y - 75,
+                x_icon, y_icon,
                 200,
                 100,
                 0);
@@ -339,7 +373,7 @@ void render_enemies(Renderer_t* renderer, int n_enemys, Enemy_t* enemys)
                 0, 0,
                 al_get_bitmap_width(renderer->img_shield),
                 al_get_bitmap_height(renderer->img_shield),
-                ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)) + 75, ENEMIES_BEGIN_Y - 75,
+                x_icon, y_icon,
                 200,
                 100,
                 0);
@@ -352,15 +386,18 @@ void render_enemies(Renderer_t* renderer, int n_enemys, Enemy_t* enemys)
         sprintf(buffer, "%d", enemys[i].actions[enemys[i].next_action].effect);
 
         draw_scaled_text(renderer->font, text_color,
-            (ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)) + 230) / scale, (ENEMIES_BEGIN_Y - 30) / scale,
+            (x_icon + 150) / scale, (y_icon + 30) / scale,
             scale, scale, ALLEGRO_ALIGN_LEFT, buffer);
 
         if (enemys[i].type == WEAK) {
             render_creature(renderer, ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)), ENEMIES_BEGIN_Y,
                 ENEMIES_WIDTH, enemys[i].max_health, enemys[i].health, enemys[i].shield, enemys[i].died ? -1 : 1, enemys[i].selected);
-        } else {
+        } else if (enemys[i].type == STRONG) {
             render_creature(renderer, ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)), ENEMIES_BEGIN_Y,
                 ENEMIES_WIDTH, enemys[i].max_health, enemys[i].health, enemys[i].shield, enemys[i].died ? -1 : 2, enemys[i].selected);
+        } else {
+            render_creature(renderer, ENEMIES_BEGIN_X, ENEMIES_BEGIN_Y - 200,
+                BOSS_WIDTH + 200, enemys[i].max_health, enemys[i].health, enemys[i].shield, enemys[i].died ? -1 : 3, enemys[i].selected);
         }
     }
 }
@@ -378,6 +415,33 @@ void render_energy(Renderer_t* renderer, int qnt, int max, float pos_x, float po
     sprintf(text, "Energia: %d/%d", qnt, max);
 
     draw_scaled_text(renderer->font, text_color, pos_x, pos_y, 2.0, 2.0, ALLEGRO_ALIGN_LEFT, text);
+
+    if (qnt == 0) {
+        sprintf(text, "Energia acabou!!", qnt, max);
+
+        draw_scaled_text(renderer->font, text_color, pos_x, pos_y + 20, 2.0, 2.0, ALLEGRO_ALIGN_LEFT, text);
+    }
+}
+
+void render_instruction(Renderer_t* renderer)
+{
+    float scale = 2.0;
+    ALLEGRO_COLOR text_color = al_map_rgb(255, 255, 255);
+
+    float txt_x = DISPLAY_WIDTH - 100 / scale;
+    float txt_y = 30 / scale;
+
+    float line_height = 20;
+
+    char buffer[64];
+
+    sprintf(buffer, "Enter: Confirmar seleção");
+    draw_scaled_text(renderer->font, text_color, txt_x, txt_y + line_height,
+        scale, scale, ALLEGRO_ALIGN_LEFT, buffer);
+
+    sprintf(buffer, "Espaço: Passar para proxima fase");
+    draw_scaled_text(renderer->font, text_color, txt_x, txt_y + (line_height * 2),
+        scale, scale, ALLEGRO_ALIGN_LEFT, buffer);
 }
 
 void render_screen(Game_t* game)
@@ -392,6 +456,8 @@ void render_screen(Game_t* game)
     render_energy(game->renderer, game->player->energy, 3, 10.0, 10.0);
     render_enemies(game->renderer, game->actual_battle.n_enemys, game->actual_battle.enemys);
     render_player_hand(game->renderer, game->player->hand);
+    render_instruction(game->renderer);
+
     al_set_target_backbuffer(game->renderer->display);
 
     al_draw_scaled_bitmap(game->renderer->display_buffer, 0, 0, DISPLAY_BUFFER_WIDTH,

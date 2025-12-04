@@ -62,6 +62,11 @@
 #define STRONG_ENEMY_MIN_HEALTH 40
 #define STRONG_ENEMY_MAX_HEALTH 100
 
+#define BOSS_MIN_HEALTH 90
+#define BOSS_MAX_HEALTH 120
+#define BOSS_WIDTH 1000
+#define BOSS_HEIGHT 500
+
 /*
 ===============================
     Returns consts

@@ -17,7 +17,7 @@ typedef struct battle {
 
 void battle(Game_t* game);
 
-Battle_t init_battle(int n_enemys);
+Battle_t init_battle(int n_enemys, int level);
 
 void free_battle(Battle_t battle);
 int index_selected_enemy(Enemy_t* enemys, int n_enemys);

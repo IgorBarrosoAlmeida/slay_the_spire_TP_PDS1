@@ -11,7 +11,25 @@ Enemy_t init_enemy(EnemyType_t type)
     enemy.selected = false;
     enemy.died = false;
 
-    if (enemy.type == WEAK) {
+    if (enemy.type == BOSS) {
+        enemy.health = BOSS_MIN_HEALTH + (rand() % (BOSS_MAX_HEALTH - BOSS_MIN_HEALTH + 1));
+        enemy.n_actions = 4;
+
+        enemy.actions = (Card_t*)malloc(sizeof(Card_t) * enemy.n_actions);
+
+        enemy.actions[0].effect = 10 + (rand() % (35 - 10 + 1));
+        enemy.actions[0].type = ATACK;
+
+        enemy.actions[1].effect = 10 + (rand() % (35 - 10 + 1));
+        enemy.actions[1].type = DEFENSE;
+
+        enemy.actions[2].effect = 10 + (rand() % (35 - 10 + 1));
+        enemy.actions[2].type = ATACK;
+
+        enemy.actions[3].effect = 10 + (rand() % (35 - 10 + 1));
+        enemy.actions[3].type = DEFENSE;
+
+    } else if (enemy.type == WEAK) {
         enemy.health = WEAK_ENEMY_MIN_HEALTH + (rand() % (WEAK_ENEMY_MAX_HEALTH - WEAK_ENEMY_MIN_HEALTH + 1));
 
         int n_actions = 1 + (rand() % 2);
@@ -32,15 +50,15 @@ Enemy_t init_enemy(EnemyType_t type)
         enemy.n_actions = n_actions;
         enemy.actions = (Card_t*)malloc(sizeof(Card_t) * n_actions);
 
-        enemy.actions[0].effect = 1 + (rand() % 10);
+        enemy.actions[0].effect = 5 + (rand() % (30 - 5 + 1));
         enemy.actions[0].type = ATACK;
         // randomize second action type
-        enemy.actions[1].effect = 1 + (rand() % 10);
+        enemy.actions[1].effect = 5 + (rand() % (30 - 5 + 1));
         enemy.actions[1].type = (rand() % 2) ? DEFENSE : ATACK;
 
         if (n_actions == 3) {
             // randomize third action type
-            enemy.actions[2].effect = 1 + (rand() % 10);
+            enemy.actions[2].effect = 5 + (rand() % (30 - 5 + 1));
             enemy.actions[2].type = (rand() % 2) ? DEFENSE : ATACK;
         }
     }

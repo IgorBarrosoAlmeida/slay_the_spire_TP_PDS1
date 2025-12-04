@@ -8,6 +8,7 @@
 typedef enum enemy_enum {
     WEAK = 0,
     STRONG = 1,
+    BOSS = 2,
 } EnemyType_t;
 
 typedef struct enemy {

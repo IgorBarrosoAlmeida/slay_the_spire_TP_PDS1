@@ -12,7 +12,7 @@ Game_t* init_game()
     game->player = init_player();
     game->level = 1;
     game->game_over = false;
-    game->actual_battle = init_battle(2);
+    game->actual_battle = init_battle(2, 1);
 
     return game;
 }
