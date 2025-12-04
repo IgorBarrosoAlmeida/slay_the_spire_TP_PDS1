@@ -26,11 +26,9 @@ Deck_t* init_deck()
     } else {
         char line[30];
         int count = 0;
-        printf("leu do arquivo");
 
         // Limpa a legenda inicial
         fgets(line, 30, deck_file);
-        printf("%s", line);
         while (fgets(line, 30, deck_file) != NULL) {
             if (count >= DECK_LENGTH) {
                 break;

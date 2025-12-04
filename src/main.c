@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 
     // ===================== initialize routines =====================
     must_init(al_init(), "allegro", NULL);
-    must_init(al_init_image_addon(), "allegro addon", NULL);
+    must_init(al_init_image_addon(), "image addon", NULL);
     must_init(al_init_primitives_addon(), "primitives addon", NULL);
     must_init(al_install_keyboard(), "keyboard", NULL);
     // al_init_font_addon();
@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
             game->level += 1;
             game->change_level = false;
             free_battle(game->actual_battle);
-            game->actual_battle = init_battle(1);
+            game->actual_battle = init_battle(2);
 
             /* TO-DO: Exibir mensagem de mudando o level*/
             /* TO-DO: Resetar o player e a batalha*/

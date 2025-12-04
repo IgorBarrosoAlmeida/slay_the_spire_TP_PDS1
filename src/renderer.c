@@ -27,6 +27,7 @@
 /* initialize renderer struct */
 Renderer_t* init_renderer()
 {
+
     Renderer_t* renderer = malloc(sizeof(Renderer_t));
 
     if (!renderer) {
@@ -52,13 +53,56 @@ Renderer_t* init_renderer()
         return NULL;
     }
 
+    // Carrega imagens
+    renderer->img_player = al_load_bitmap("./assets/images/player.png");
+    if (!renderer->img_player) {
+        return NULL;
+    }
+
+    renderer->img_background = al_load_bitmap("./assets/images/bg.jpg");
+    if (!renderer->img_background) {
+        return NULL;
+    }
+
+    // monstros
+    renderer->img_enemy_weak = al_load_bitmap("./assets/images/slime.png");
+    if (!renderer->img_enemy_weak) {
+        return NULL;
+    }
+
+    renderer->img_enemy_strong = al_load_bitmap("./assets/images/ogre.png");
+    if (!renderer->img_enemy_strong) {
+        return NULL;
+    }
+
+    // icones
+    renderer->img_shield = al_load_bitmap("./assets/images/shield_icon.png");
+    if (!renderer->img_shield) {
+        return NULL;
+    }
+    renderer->img_sword = al_load_bitmap("./assets/images/sword_icon.png");
+    if (!renderer->img_sword) {
+        return NULL;
+    }
+
     return renderer;
 }
 
 /* render game background */
 void render_background(Renderer_t* renderer)
 {
-    al_clear_to_color(al_map_rgb(0, 0, 0));
+
+    if (renderer->img_background) {
+        int bg_w = al_get_bitmap_width(renderer->img_background);
+        int bg_h = al_get_bitmap_height(renderer->img_background);
+
+        al_draw_scaled_bitmap(renderer->img_background,
+            0, 0, bg_w, bg_h,
+            0, 0, DISPLAY_WIDTH / DISPLAY_SCALE, DISPLAY_HEIGHT / DISPLAY_SCALE,
+            0);
+    } else {
+        al_clear_to_color(al_map_rgb(0, 0, 0));
+    }
 }
 
 void draw_scaled_text(ALLEGRO_FONT* font, ALLEGRO_COLOR color, float x, float y,
@@ -103,7 +147,6 @@ void render_deck(Renderer_t* renderer, int x_left, int y_top, char* type, int co
     float line_height = 20;
 
     char buffer[64];
-    sprintf(buffer, "%s:", type);
 
     draw_scaled_text(renderer->font, text_color, txt_x, txt_y,
         scale, scale, ALLEGRO_ALIGN_LEFT, buffer);
@@ -140,20 +183,53 @@ void render_health_bar(float x, float y, float width, float height, int current_
     al_draw_rectangle(x, y, x + width, y + height, al_map_rgb(255, 255, 255), 2.0);
 }
 
-void render_creature(const Renderer_t* renderer, int begin_x, int mid_y, int width, int max_health, int health, int shield)
+void render_creature(const Renderer_t* renderer, int begin_x, int begin_y, int width, int max_health, int health, int shield, int img_id)
 {
-    al_draw_filled_circle(begin_x + width / 2.0, mid_y, width,
-        al_map_rgb(255, 255, 255));
-    float x_end = begin_x + width;
+    switch (img_id) {
+    case 0:
+        al_draw_scaled_bitmap(
+            renderer->img_player,
+            0, 0,
+            al_get_bitmap_width(renderer->img_player),
+            al_get_bitmap_height(renderer->img_player),
+            begin_x, begin_y,
+            width,
+            200,
+            0);
+        break;
+    case 1:
+        al_draw_scaled_bitmap(
+            renderer->img_enemy_weak,
+            0, 0,
+            al_get_bitmap_width(renderer->img_enemy_weak),
+            al_get_bitmap_height(renderer->img_enemy_weak),
+            begin_x, begin_y,
+            width,
+            200,
+            0);
+        break;
+    case 2:
+        al_draw_scaled_bitmap(
+            renderer->img_enemy_strong,
+            0, 0,
+            al_get_bitmap_width(renderer->img_enemy_weak),
+            al_get_bitmap_height(renderer->img_enemy_weak),
+            begin_x, begin_y,
+            width,
+            200,
+            0);
+        break;
+    }
+    float x_end = begin_x + width + 100;
 
-    float health_bar_y = mid_y + width + 20;
+    float health_bar_y = begin_y + 200;
     render_health_bar(begin_x, health_bar_y, 300, 50, health, max_health);
 
     float scale = 2.0;
     ALLEGRO_COLOR text_color = al_map_rgb(255, 255, 255);
 
     float txt_x = (begin_x + 10) / scale;
-    float txt_y = (mid_y + 190) / scale;
+    float txt_y = (health_bar_y + 100) / scale;
 
     char buffer[64];
 
@@ -215,13 +291,38 @@ void render_player_hand(Renderer_t* renderer, PlayerHand_t* hand)
 void render_enemies(Renderer_t* renderer, int n_enemys, Enemy_t* enemys)
 {
     for (int i = 0; i < n_enemys; i++) {
-        render_creature(renderer, ENEMIES_BEGIN_X + (i * (ENEMIES_RADIUS + 30)), ENEMIES_BEGIN_Y + (i * ENEMIES_RADIUS), ENEMIES_RADIUS, enemys[i].max_health, enemys[i].health, enemys[i].shield);
+        if (enemys[i].actions[enemys[i].next_action].type == ATACK) {
+            al_draw_scaled_bitmap(
+                renderer->img_sword,
+                0, 0,
+                al_get_bitmap_width(renderer->img_sword),
+                al_get_bitmap_height(renderer->img_sword),
+                ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)) + 75, ENEMIES_BEGIN_Y - 75,
+                200,
+                100,
+                0);
+        } else {
+            al_draw_scaled_bitmap(
+                renderer->img_shield,
+                0, 0,
+                al_get_bitmap_width(renderer->img_shield),
+                al_get_bitmap_height(renderer->img_shield),
+                ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)) + 75, ENEMIES_BEGIN_Y - 75,
+                200,
+                100,
+                0);
+        }
+        if (enemys[i].type == WEAK) {
+            render_creature(renderer, ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)), ENEMIES_BEGIN_Y, ENEMIES_WIDTH, enemys[i].max_health, enemys[i].health, enemys[i].shield, 1);
+        } else {
+            render_creature(renderer, ENEMIES_BEGIN_X + (i * (ENEMIES_WIDTH + 30)), ENEMIES_BEGIN_Y, ENEMIES_WIDTH, enemys[i].max_health, enemys[i].health, enemys[i].shield, 2);
+        }
     }
 }
 
 void render_player(Renderer_t* renderer, Player_t* player)
 {
-    render_creature(renderer, PLAYER_BEGIN_X, PLAYER_BEGIN_Y + PLAYER_RADIUS, PLAYER_RADIUS, PLAYER_MAX_HEALTH, player->health, player->shield);
+    render_creature(renderer, PLAYER_BEGIN_X, PLAYER_BEGIN_Y, PLAYER_WIDTH, PLAYER_MAX_HEALTH, player->health, player->shield, 0);
 }
 
 void render_energy(Renderer_t* renderer, int qnt, int max, float pos_x, float pos_y)
@@ -262,6 +363,8 @@ void clear_renderer(Renderer_t* renderer)
 
     al_destroy_display(renderer->display);
     al_destroy_bitmap(renderer->display_buffer);
+    al_destroy_bitmap(renderer->img_shield);
+    al_destroy_bitmap(renderer->img_sword);
     al_destroy_font(renderer->font);
     free(renderer);
 }

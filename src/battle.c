@@ -80,12 +80,11 @@ Type_t player_move(Player_t* player, Enemy_t* enemy)
     return player->hand->cards[card_index].type;
 }
 
-void enemy_move(Player_t* player, Enemy_t enemy)
+void enemy_move(Player_t* player, Enemy_t* enemy)
 {
-    switch (enemy.actions[enemy.next_action].type) {
+    switch (enemy->actions[enemy->next_action].type) {
     case ATACK: {
-
-        int damage = enemy.actions[enemy.next_action].effect;
+        int damage = enemy->actions[enemy->next_action].effect;
         if (player->shield != 0) {
             int aux = damage;
             damage -= player->shield;
@@ -107,15 +106,15 @@ void enemy_move(Player_t* player, Enemy_t enemy)
         break;
     }
     case DEFENSE: {
-        enemy.shield += enemy.actions[enemy.next_action].effect;
+        enemy->shield += enemy->actions[enemy->next_action].effect;
         break;
     }
     }
 
-    if (enemy.next_action + 1 < enemy.n_actions) {
-        enemy.next_action++;
+    if (enemy->next_action + 1 < enemy->n_actions) {
+        enemy->next_action += 1;
     } else {
-        enemy.next_action = 0;
+        enemy->next_action = 0;
     }
 }
 
@@ -148,9 +147,8 @@ void battle(Game_t* game)
         }
     } else {
         for (int i = 0; i < game->actual_battle.n_enemys; i++) {
-            (game->player, game->actual_battle.enemys[i]);
+            enemy_move(game->player, &(game->actual_battle.enemys[i]));
         }
-        /* TO-DO: Fazer esperar um pouco pra ação dos inimigos */
     }
 
     if (game->player->health <= 0) {

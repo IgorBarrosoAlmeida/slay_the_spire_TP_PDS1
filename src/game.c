@@ -13,7 +13,7 @@ Game_t* init_game()
     game->level = 1;
     game->change_level = false;
     game->game_over = false;
-    game->actual_battle = init_battle(1);
+    game->actual_battle = init_battle(2);
 
     return game;
 }
