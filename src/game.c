@@ -4,7 +4,6 @@
 
 Game_t* init_game()
 {
-    /* TO-DO atualizar logica de status */
     Game_t* game = (Game_t*)malloc(sizeof(Game_t));
 
     game->renderer = init_renderer();

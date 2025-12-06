@@ -12,18 +12,16 @@
 
 #include <allegro5/allegro.h>
 #include <allegro5/allegro5.h>
-// #include <allegro5/allegro_font.h>
-// #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-/*
-==============================
-    main function
-==============================
-*/
+/**
+ * @brief Função principal do jogo, responsável por inicializar as dependencias/addons
+ * da biblioteca allegro e por definir o fluxo principal do jogo através do loop while
+ * a main é a raiz do código que chama as outras funções que compõe o jogo.
+ */
 int main(int argc, char* argv[])
 {
     ALLEGRO_DISPLAY* display = NULL;
@@ -31,16 +29,15 @@ int main(int argc, char* argv[])
     ALLEGRO_TIMER* timer = NULL;
     _Bool redraw = true, card_selected = false, hand_locked = false, enemy_selected = false;
     double inicio_turno_inimigo = 0;
+
     // Inicializa a semente aleatória com o tempo atual do sistema
     srand(time(NULL));
 
-    // ===================== initialize routines =====================
+    // rotinas de inicialização
     must_init(al_init(), "allegro", NULL);
     must_init(al_init_image_addon(), "image addon", NULL);
     must_init(al_init_primitives_addon(), "primitives addon", NULL);
     must_init(al_install_keyboard(), "keyboard", NULL);
-    // al_init_font_addon();
-    // must_init(al_init_ttf_addon(), "font ttf addon", NULL);
     Game_t* game = init_game();
 
     timer = al_create_timer(1.0 / FPS);
@@ -49,8 +46,7 @@ int main(int argc, char* argv[])
     event_queue = al_create_event_queue();
     must_init(event_queue, "queue", game);
 
-    // ===================== event queue registers =====================
-
+    // Registra na lista de eventos
     al_register_event_source(event_queue, al_get_keyboard_event_source());
     al_register_event_source(event_queue, al_get_timer_event_source(timer));
     al_register_event_source(event_queue, al_get_display_event_source(game->renderer->display));
@@ -60,6 +56,7 @@ int main(int argc, char* argv[])
     // inicia o temporizador
     al_start_timer(timer);
 
+    // loop principal
     while (true) {
         al_wait_for_event(event_queue, &event);
 
@@ -137,6 +134,7 @@ int main(int argc, char* argv[])
             }
         }
 
+        // Ações do turno do jogador
         if (game->actual_battle.isPlayerTurn && !hand_locked && game->player->hand->actual_length > 0) {
             if (event.type == ALLEGRO_EVENT_KEY_DOWN) {
                 int active_card = index_card_active(game->player->hand);
@@ -229,6 +227,18 @@ int main(int argc, char* argv[])
                 }
                 }
             }
+        }
+
+        /* ================================= Mudança para a prova ================================= */
+        if (event.type == ALLEGRO_EVENT_KEY_DOWN && event.keyboard.keycode == ALLEGRO_KEY_C) {
+
+            int j = game->player->discard_stack->actual_length;
+            for (int i = 0; i < game->player->deck->actual_length; i++) {
+                game->player->discard_stack->cards[j] = game->player->deck->cards[i];
+                j++;
+            }
+            game->player->discard_stack->actual_length = j;
+            game->player->deck->actual_length = 0;
         }
 
         if (event.type == ALLEGRO_EVENT_KEY_DOWN && game->actual_battle.isPlayerTurn) {

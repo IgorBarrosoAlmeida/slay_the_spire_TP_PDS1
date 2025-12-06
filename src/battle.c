@@ -14,7 +14,7 @@ Battle_t init_battle(int n_enemies, int level)
         for (int i = 0; i < n_enemies; i++) {
             // chance de aparecer um inimigo forte aumenta a cada fase
             int strong_enemy_percent = 1 + (rand() % 100);
-            if (strong_enemy_percent <= (5 * level) / 2) { // No enunciado está 5% mas achei mais condizente assim
+            if (strong_enemy_percent <= 50) { // No enunciado está 5% mas achei mais condizente assim
                 battle.enemies[i] = init_enemy(STRONG);
             } else {
                 battle.enemies[i] = init_enemy(WEAK);
