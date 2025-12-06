@@ -1,4 +1,4 @@
-# 🔥 Slay the Spire --- TP PDS1
+# Slay the Spire --- TP PDS1
 
 **Sobre o Projeto**
 Este projeto consiste em uma implementação inspirada jogo Slay the Spire, desenvolvida integralmente na linguagem C. O jogo foi criado como Trabalho Prático Final para a disciplina de Programação e Desenvolvimento de Software I (PDS1) da Universidade Federal de Minas Gerais (UFMG).
@@ -28,7 +28,7 @@ Funcionalidades Principais
 
 ------------------------------------------------------------------------
 
-## ⚙️ Como Compilar
+## Como Compilar
 
 **Windows (via MSYS2/MinGW):**
 Recomenda-se o uso do MSYS2 para gerenciar pacotes.
@@ -47,7 +47,7 @@ Certifique-se de ter:
 -   **GCC** ou outro compilador C compatível\
 -   **make**
 
-### 🔧 Compilação
+### Compilação
 
 ``` bash
 make
@@ -57,7 +57,7 @@ O executável será gerado dentro da pasta:
 
     /bin
 
-### 🧹 Limpar arquivos de compilação
+### Limpar arquivos de compilação
 
 ``` bash
 make clean
@@ -65,7 +65,7 @@ make clean
 
 ------------------------------------------------------------------------
 
-## ▶️ Como Executar
+## Como Executar
 
 ``` bash
 ./bin/slay_the_spire.exe
@@ -73,7 +73,7 @@ make clean
 
 ------------------------------------------------------------------------
 
-## 📚 Organização do Código
+## Organização do Código
 
 ### `src/`
 
@@ -98,7 +98,7 @@ Arquivos de apoio (contém o txt que define as caracteristicas do deck e as
 imagens utilizadas no jogo, todas geradas utilizando o modelo nano banana do 
 gemini).
 
-## 🧾 Créditos
+## Créditos
 
 Desenvolvido por **Igor Barroso Almeida** como Trabalho Prático de
 **PDS1**.
